@@ -27,8 +27,13 @@ export const MIN_POSITIVE_SIGNALS = 3;
  * Time from the *first* delight moment before the first prompt. A user who posts three
  * moments in their first ten minutes is exploring, not yet attached, and an install-day
  * prompt is the classic way to earn a one-star review.
+ *
+ * Two days, not three, so that a Friends with Habits user who checks in on day 0, 1 and 2
+ * becomes askable on their third check-in day, the point by which most users have already
+ * stopped (2026-11-25: of 54 who ever checked in, 15 checked in again on days 1–2). Waiting
+ * a third day meant asking only a few people who had stayed even longer.
  */
-export const MIN_DAYS_SINCE_FIRST_SIGNAL = 3;
+export const MIN_DAYS_SINCE_FIRST_SIGNAL = 2;
 /** Quiet period after any prompt the user did not act on. */
 export const DAYS_BETWEEN_PROMPTS = 90;
 /** Total times we will ever ask someone who keeps deferring. */
@@ -51,14 +56,32 @@ export interface IAppReviewPromptState {
     lastPromptedAt?: number;
     /** Most recent delight moment, kept so a support session can tell why a prompt appeared. */
     lastSignal?: AppReviewSignal;
+    /**
+     * Local day (YYYY-MM-DD) of the last signal recorded with a `dayKey`, so that a signal
+     * counted once per day (a habit check-in) cannot reach the threshold in one sitting.
+     */
+    lastSignalDayKey?: string;
     status: AppReviewPromptStatus;
 }
 
 /**
  * Signal names are recorded for analytics/debugging only — every signal counts the same.
  * Keep these to moments the user chose and completed, not to passive engagement.
+ *
+ * `habitCheckinDay` is the Friends with Habits signal. Before it existed the only signals
+ * were Therr moments and achievement claims, which most habits users never touch: the
+ * prompt was shown to 4 users in the 15 days to 2026-11-24. It is recorded with a `dayKey`
+ * so that it counts one per day, however many habits are checked in.
  */
-export type AppReviewSignal = 'momentShared' | 'achievementClaimed';
+export type AppReviewSignal = 'momentShared' | 'achievementClaimed' | 'habitCheckinDay';
+
+export interface IRecordSignalOptions {
+    /**
+     * The user's local day (YYYY-MM-DD). When given, a second signal with the same key is
+     * ignored. Signals recorded without one always count.
+     */
+    dayKey?: string;
+}
 
 const buildInitialState = (nowMs: number): IAppReviewPromptState => ({
     firstSignalAt: nowMs,
@@ -160,14 +183,22 @@ const updateReviewPromptState = async (
 export const recordPositiveSignal = (
     signal: AppReviewSignal,
     nowMs: number = Date.now(),
-): Promise<IAppReviewPromptState | undefined> => updateReviewPromptState((state) => ({
-    ...state,
-    // Re-anchor if the stored stamp is in the future, so a clock that moved backwards cannot
-    // hold the "not on install day" gate closed forever.
-    firstSignalAt: Math.min(state.firstSignalAt, nowMs),
-    positiveSignalCount: state.positiveSignalCount + 1,
-    lastSignal: signal,
-}), nowMs);
+    options: IRecordSignalOptions = {},
+): Promise<IAppReviewPromptState | undefined> => updateReviewPromptState((state) => {
+    if (options.dayKey && state.lastSignalDayKey === options.dayKey) {
+        return state;
+    }
+
+    return {
+        ...state,
+        // Re-anchor if the stored stamp is in the future, so a clock that moved backwards cannot
+        // hold the "not on install day" gate closed forever.
+        firstSignalAt: Math.min(state.firstSignalAt, nowMs),
+        positiveSignalCount: state.positiveSignalCount + 1,
+        lastSignal: signal,
+        ...(options.dayKey ? { lastSignalDayKey: options.dayKey } : {}),
+    };
+}, nowMs);
 
 /** Whether the prompt should be shown at this moment. */
 export const shouldShowReviewPrompt = async (nowMs: number = Date.now()): Promise<boolean> => {

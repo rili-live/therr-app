@@ -28,6 +28,9 @@ export type Trigger =
     // reminder has something to protect, which is why the pre-dashboard opt-in screen is gone.
     | 'firstCheckin'
     | 'habitsOnboarding'
+    // A HABITS user's third distinct check-in day (utilities/habitCheckinMoments.ts) — the
+    // one-time second ask for someone who declined the OS prompt. See requestOnceMoreIfDeclined.
+    | 'streakProtect'
     | 'secondSession';
 
 type Status = 'granted' | 'denied' | 'blocked';
@@ -38,6 +41,11 @@ export interface PermState {
     osAskedAt?: number;
     lastStatus?: Status;
     appVersionAtLastAsk?: string;
+    /**
+     * When `requestOnceMoreIfDeclined` spent its single second ask. Stamped before the ask,
+     * so a dismissed primer or a killed app still counts as the one chance.
+     */
+    osReaskedAt?: number;
     /**
      * Which revision of the prominent disclosure the user has affirmatively accepted.
      * Only set for types listed in DISCLOSURE_REVISION.
@@ -388,6 +396,47 @@ const requestIfAppropriate = async (type: PermType, opts: RequestOptions): Promi
     await request(type, opts);
 };
 
+/**
+ * One second chance at the OS prompt, for a user who already declined it once.
+ *
+ * `requestIfAppropriate` stops for good after the first OS ask, which is right for the
+ * opportunistic triggers that fire on almost any screen. But it left every Friends with
+ * Habits user who declined at their first check-in unreachable by push for the life of the
+ * install, and push is the only channel that brings a lapsed user back: on 2026-11-25, 6 of
+ * 31 comeback pushes were followed by a check-in within four days and 0 of 55 comeback
+ * emails were. 13 of 42 lapsed users and 5 of 12 active ones had never held a device token.
+ *
+ * Android 13+ lets an app show POST_NOTIFICATIONS twice before the OS stops showing it, so
+ * this spends that second dialog, once, at a moment the user has shown they care (see the
+ * `streakProtect` trigger). It always goes through the shared primer first, and it never
+ * applies on iOS or older Android, where a declined notification permission can only be
+ * turned back on from system settings, and the dialog would not appear at all.
+ *
+ * Someone who was never asked at the OS level (they dismissed the primer) takes the
+ * ordinary `requestIfAppropriate` path instead, soft-ask cap included.
+ */
+const requestOnceMoreIfDeclined = async (type: PermType, opts: RequestOptions): Promise<void> => {
+    const native = await nativeCheck(type);
+    if (native === 'granted' && !(await isDisclosurePending(type))) {
+        await updateStateFor(type, { lastStatus: 'granted' });
+        opts.onGranted?.();
+        fireGrantedListeners(type);
+        return;
+    }
+    if (native === 'blocked') return;
+
+    const state = await getStateFor(type);
+    if (!state.osAskedAt) {
+        await requestIfAppropriate(type, opts);
+        return;
+    }
+    if (state.osReaskedAt) return;
+    if (type !== 'notifications' || Platform.OS !== 'android' || Number(Platform.Version) < 33) return;
+
+    await updateStateFor(type, { osReaskedAt: Date.now() });
+    await request(type, opts);
+};
+
 const getStatus = (type: PermType): Promise<Status> => nativeCheck(type);
 
 const maybeShowSecondSessionFallback = async (
@@ -412,6 +461,7 @@ const permissions = {
     request,
     requestAfterCustomPrimer,
     requestIfAppropriate,
+    requestOnceMoreIfDeclined,
     getStatus,
     maybeShowSecondSessionFallback,
     registerPrimerListener,

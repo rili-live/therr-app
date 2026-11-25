@@ -35,6 +35,7 @@ import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/cele
 import PactOnboardingGuard from '../../components/Habits/PactOnboardingGuard';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
+import { onHabitCheckinCompleted } from '../../utilities/habitCheckinMoments';
 import { DURATION, showToast } from '../../utilities/toasts';
 import {
     canManagePactMembers, countTodayProgress, getNonTerminalPactMemberIds, IHabitWithPactState,
@@ -608,6 +609,7 @@ export class HabitsDashboard extends React.Component<IHabitsDashboardProps, IHab
                     source: 'dashboard',
                     hasProof: false,
                 });
+                onHabitCheckinCompleted({ dayKey: today });
 
                 // The streak is the reward for the tap, so it has to move now.
                 // CREATE_CHECKIN only updates today's checkins in Redux — the

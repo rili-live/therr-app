@@ -19,6 +19,7 @@ import { CHECKIN_PROOF_XP } from '../../constants/checkinProofXp';
 import getConfig from '../../utilities/getConfig';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
+import { onHabitCheckinCompleted } from '../../utilities/habitCheckinMoments';
 import { showToast } from '../../utilities/toasts';
 import translator from '../../utilities/translator';
 import { buildStyles } from '../../styles';
@@ -231,6 +232,8 @@ export const CheckinDetail = ({
                 ...(hasAmountChange ? { savedAmount } : {}),
             }))
             .then((checkin: any) => {
+                onHabitCheckinCompleted({ dayKey: scheduledDate });
+
                 // What the note/photo earned on the leaderboard, as the service decided it.
                 // Zero when this save added nothing new (a re-save, a note too short to count,
                 // or proof that was already paid for) — the plain "saved" copy covers that.
