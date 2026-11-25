@@ -106,3 +106,7 @@ npx eslint src/**/*.ts         # Verify no errors remain
 ```
 
 See root `CLAUDE.md` for full code quality requirements.
+
+Test fixtures must build dates relative to now (or pin the clock). A literal near-future date such as
+an `endDate` goes stale and fails CI the day it passes — handlers that refuse ended pacts/challenges
+answer 400 instead of the status the test expects.

@@ -194,6 +194,12 @@ them all.
   `ios/Therr/BootSplash.storyboard`
 - `google-services.json`, `GoogleService-Info.plist`
 - `TherrMobile/package.json` — only the `adb` script app ids
+- `TherrMobile/env-config.js` — the feature-flag **values**. `general` holds a single flat
+  `featureFlags` object with Therr's defaults (marked `// NICHE: Update these values`); the
+  `brandFeatureFlagOverrides` map and the niche-only flag keys (`ENABLE_HABITS`, …) exist only on
+  the niche branch. A new flag added on `general` (e.g. `ENABLE_DROPS: true`) arrives in the
+  niche file on the next merge down, so decide the niche value in that merge — the merge itself
+  will not ask.
 - Locale strings only that variant renders
 - `.circleci/config.yml` release-job branch filters / EAS profile names for that brand
 
@@ -222,8 +228,6 @@ separation is clean.
 
 **Careful cases — these look niche but are shared:**
 
-- `TherrMobile/env-config.js` — the per-brand feature-flag override map is shared infrastructure.
-  Every brand's overrides live on `general`.
 - Brand *feature* code (habits routes, pact components) and its additive assets
   (`main/assets/habits-icons/**`, landing images) — shared; it is flag-gated, not brand identity.
 - `brandColorOverrides` / `brandColorVariationOverrides` in `styles/themes/index.ts` and
