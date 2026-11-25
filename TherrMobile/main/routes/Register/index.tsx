@@ -24,6 +24,9 @@ import spacingStyles from '../../styles/layouts/spacing';
 import BaseStatusBar from '../../components/BaseStatusBar';
 import LanguageSelector from '../../components/LanguageSelector';
 import ConfirmModal from '../../components/Modals/ConfirmModal';
+import SSOButtons from '../../components/LoginButtons/SSOButtons';
+import { getLoginErrorCopy } from '../../utilities/authErrors';
+import { buildSSOUserDetails, getSSOErrorCopy } from '../../utilities/ssoLogin';
 import eula from '../Map/EULA';
 
 interface IRegisterDispatchProps {
@@ -55,6 +58,8 @@ interface IRegisterState {
     signupMethod: 'phone' | 'email';
     /** Mirrors `PhoneSignupForm`'s step so the screen can hide chrome mid-sign-up. */
     phoneSignupStep: PhoneSignupStep;
+    /** A Google/Apple sign-in started from the buttons at the top of the screen is in flight. */
+    isSSOSubmitting: boolean;
 }
 
 const mapStateToProps = (state: any) => ({
@@ -71,7 +76,7 @@ const mapDispatchToProps = (dispatch: any) =>
         dispatch
     );
 
-class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
+export class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> {
     private translate;
     private theme = buildStyles();
     private themeAlerts = buildAlertStyles();
@@ -92,6 +97,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
             // channel — routing them through phone verification would throw that away.
             signupMethod: props.route?.params?.inviteToken ? 'email' : 'phone',
             phoneSignupStep: 'phone',
+            isSSOSubmitting: false,
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -183,6 +189,40 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
         this.props.navigation.navigate('Login');
     };
 
+    /**
+     * SSO from the top of the screen. The same call signs an existing account in or creates
+     * one, so "Continue with Google" is a complete sign-up on its own — no phone, no password.
+     */
+    onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
+        const ssoUserDetails = buildSSOUserDetails(idToken, user, additionalUserInfo, provider, Platform.OS);
+
+        if (!ssoUserDetails) {
+            console.log('SSO email is not verified!');
+            return;
+        }
+
+        this.setState({ isSSOSubmitting: true });
+        this.props
+            .login(ssoUserDetails, {
+                googleSSOIdToken: ssoUserDetails.idToken,
+            })
+            .catch((error: any) => {
+                const { title, message } = getLoginErrorCopy(error, this.translate);
+
+                this.setState({ isSSOSubmitting: false });
+                showToast.error({ text1: title, text2: message });
+            });
+    };
+
+    onSSOLoginError = (err) => {
+        this.setState({ isSSOSubmitting: false });
+
+        const copy = getSSOErrorCopy(err, this.translate);
+        if (copy) {
+            showToast.error({ text1: copy.title, text2: copy.message });
+        }
+    };
+
     goToMap = () => {
         this.props.navigation.navigate('Map');
     };
@@ -195,7 +235,19 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
     };
 
     render() {
-        const { isEULAVisible, phoneSignupStep, signupMethod } = this.state;
+        const {
+            isEULAVisible,
+            isSSOSubmitting,
+            phoneSignupStep,
+            signupMethod,
+        } = this.state;
+        const isInviteSignup = !!this.props.route?.params?.inviteToken;
+        // SSO leads the screen, except (a) once a phone code is in flight — an alternative
+        // then is a way to lose progress — and (b) for invite links, where SSO sign-up does
+        // not yet carry the invite token, so the e-mail form stays first and the buttons
+        // stay below it.
+        const isLeadingSSOVisible = !isInviteSignup
+            && (signupMethod === 'email' || phoneSignupStep === 'phone');
         // Same reasoning as the sign-in screen: a locale change remounts the navigator and wipes
         // the form's in-memory state, so the picker comes down once there is a verified number
         // (or a code in flight) to lose. The email form is a single step with nothing at stake.
@@ -238,6 +290,22 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                     : null
                             }
                             {
+                                isLeadingSSOVisible
+                                    ? (
+                                        <SSOButtons
+                                            disabled={isSSOSubmitting}
+                                            intent="continue"
+                                            onLoginError={this.onSSOLoginError}
+                                            onLoginSuccess={this.onSSOLoginSuccess}
+                                            hasTrailingDivider
+                                            translate={this.translate}
+                                            themeAuthForm={this.themeAuthForm}
+                                            themeForms={this.themeForms}
+                                        />
+                                    )
+                                    : null
+                            }
+                            {
                                 signupMethod === 'phone'
                                     ? (
                                         <PhoneSignupForm
@@ -260,6 +328,7 @@ class RegisterComponent extends React.Component<IRegisterProps, IRegisterState> 
                                             register={this.props.register}
                                             onSuccess={this.onSuccess}
                                             onSwitchToPhoneSignup={() => this.setSignupMethod('phone')}
+                                            showSSOButtons={isInviteSignup}
                                             theme={this.theme}
                                             themeAlerts={this.themeAlerts}
                                             themeAuthForm={this.themeAuthForm}
