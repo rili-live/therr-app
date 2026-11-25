@@ -1,0 +1,2 @@
+What's new:
+• Your league board now shows the promotion and demotion lines, so you can see exactly where you stand before the week ends

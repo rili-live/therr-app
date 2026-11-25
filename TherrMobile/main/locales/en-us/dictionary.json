@@ -1653,6 +1653,12 @@
                 "demotionZoneAccessibility": "In the relegation zone",
                 "topLeague": "You're in the top league. Hold your ground!",
                 "tooSmall": "Moves up and down start once 5 people are competing in this league.",
+                "promotionLine": "Promotion line",
+                "demotionLine": "Demotion line",
+                "promotionLineAccessibility": "Promotion line: everyone above it moves up a league when the week ends",
+                "demotionLineAccessibility": "Demotion line: everyone below it drops a league when the week ends",
+                "youArePromoting": "You're above the promotion line",
+                "youAreDemoting": "You're below the demotion line — check in today to climb out",
                 "names": {
                     "habits": {
                         "seedling": "Seedling",

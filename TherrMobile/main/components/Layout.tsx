@@ -110,6 +110,7 @@ import { clearHabitsWidget, getWidgetActionRoute } from '../utilities/habitsWidg
 import { JOIN_TOKEN_RE, parseChallengeUrl } from '../routes/Challenges/challengeFormat';
 import { isHabitCapPaywallAvailable } from '../utilities/habitCapPaywall';
 import refreshHabitsWidgetInBackground, { shouldRefreshWidgetForPush } from '../utilities/habitsWidgetRefresh';
+import { onHabitCheckinCompleted } from '../utilities/habitCheckinMoments';
 
 const preLoadImageList = [background1, background2, background3];
 
@@ -2135,6 +2136,9 @@ class Layout extends React.Component<ILayoutProps, ILayoutState> {
                         source: 'pushAction',
                         hasProof: false,
                     });
+                    // The user acted on a push, so notifications are on; only the review
+                    // signal applies.
+                    onHabitCheckinCompleted({ mayAskForNotifications: false });
 
                     showToast.success({
                         text1: this.translate('alertTitles.checkinSucceeded'),

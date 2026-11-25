@@ -9,6 +9,7 @@ import translator from '../../utilities/translator';
 import permissions from '../../utilities/permissionsOrchestrator';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
+import { onHabitCheckinCompleted } from '../../utilities/habitCheckinMoments';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import { showToast } from '../../utilities/toasts';
@@ -125,6 +126,8 @@ export class FirstCheckin extends React.Component<IFirstCheckinProps, IFirstChec
                     hasProof: false,
                     isFirstSession: true,
                 });
+                // Counts toward the review prompt. The notification ask is the line below.
+                onHabitCheckinCompleted({ dayKey: today, mayAskForNotifications: false });
                 Promise.resolve(getActiveStreaks()).catch(() => {});
                 // The first moment a reminder has something to protect. Replaces the opt-in
                 // screen that used to sit in front of the dashboard before the user had done

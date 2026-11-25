@@ -63,6 +63,7 @@ import { readSoloGraceEnded } from '../../utilities/soloGrace';
 import celebrationQueue, { enqueueStreakCelebration } from '../../utilities/celebrationQueue';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { toLocalDateKey } from '../../utilities/localDateKey';
+import { onHabitCheckinCompleted } from '../../utilities/habitCheckinMoments';
 import { DURATION, showToast } from '../../utilities/toasts';
 import getDeviceTimeZone from '../../utilities/deviceTimeZone';
 import { IChallenge, isChallenge } from '../Challenges/challengeFormat';
@@ -1289,6 +1290,7 @@ export class HabitDetail extends React.Component<IHabitDetailProps, IHabitDetail
                     source: 'habitDetail',
                     hasProof: false,
                 });
+                onHabitCheckinCompleted({ dayKey: today });
 
                 // A freeze was spent covering a day this user missed. Say so here rather than
                 // leaving them to infer it from a streak number that did not drop — this is the

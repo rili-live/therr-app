@@ -12,7 +12,13 @@ import { getLeaderboardLeagues } from 'therr-js-utilities/config';
 import { CURRENT_BRAND_VARIATION } from '../../main/config/brandConfig';
 import { Leaderboard } from '../../main/routes/Leaderboard';
 import LeagueHeader from '../../main/routes/Leaderboard/LeagueHeader';
-import { getLeagueNameKey, getLeagueZone, ILeaderboardLeagueStatus, resolveLeague } from '../../main/routes/Leaderboard/leagues';
+import {
+    getLeagueLinesAbove,
+    getLeagueNameKey,
+    getLeagueZone,
+    ILeaderboardLeagueStatus,
+    resolveLeague,
+} from '../../main/routes/Leaderboard/leagues';
 import { buildStyles as buildLeaderboardStyles } from '../../main/styles/leaderboard';
 import translator from '../../main/utilities/translator';
 
@@ -65,6 +71,32 @@ describe('leaderboard leagues — helpers', () => {
             .toEqual(['promote', 'promote', null, null]);
         // A tie straddling the relegation line is spared: ranks 8, 8, 8 at positions 8–10.
         expect([8, 9, 10].map((position) => getLeagueZone(8, position, current))).toEqual([null, null, null]);
+    });
+
+    it('draws the promotion line under the last row moving up and the demotion line over the first row dropping', () => {
+        const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rank) => ({ rank }));
+        const linesByIndex = rows.map((_, index) => getLeagueLinesAbove(rows, index, league()));
+
+        expect(linesByIndex).toEqual([[], [], ['promotion'], [], [], [], [], [], ['demotion'], []]);
+    });
+
+    it('draws each line exactly once, following the zones through ties', () => {
+        // A tie at 2 straddles the promotion line (split by position); a tie at 8 straddles the
+        // demotion line (spared), so only the last row is under it.
+        const rows = [1, 2, 2, 4, 5, 6, 7, 8, 8, 10].map((rank) => ({ rank }));
+        const linesByIndex = rows.map((_, index) => getLeagueLinesAbove(rows, index, league()));
+
+        expect(linesByIndex).toEqual([[], [], ['promotion'], [], [], [], [], [], [], ['demotion']]);
+    });
+
+    it('draws no line without a running league, in a frozen league, or past the edge of the page', () => {
+        const rows = [1, 2, 3].map((rank) => ({ rank }));
+
+        expect(rows.map((_, index) => getLeagueLinesAbove(rows, index, null))).toEqual([[], [], []]);
+        expect(rows.map((_, index) => getLeagueLinesAbove(rows, index, league({ size: 3, promoteCount: 0, demoteCount: 0 }))))
+            .toEqual([[], [], []]);
+        // A league of 10 whose page holds only its top 2: both rows move up and the line has no row under it.
+        expect(getLeagueLinesAbove(rows.slice(0, 2), 2, league())).toEqual([]);
     });
 
     it('reads an unknown or missing league as the lowest one on the brand ladder', () => {
@@ -219,6 +251,38 @@ describe('Leaderboard screen — first load', () => {
         expect(getLeaderboard).toHaveBeenCalledTimes(1);
         expect(getLeaderboard.mock.calls[0][0]).toMatchObject({ scope: 'global' });
         await act(async () => { component!.unmount(); });
+    });
+
+    it('draws the promotion and demotion lines across the league board', async () => {
+        const entries = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rank) => ({
+            userId: `user-${rank + 1}`, userName: `name-${rank}`, points: 110 - rank * 10, rank, isRequestingUser: false,
+        }));
+        getLeaderboard.mockResolvedValue(board({ scope: 'league', league: brandLeague(), entries }));
+
+        const component = await renderScreen();
+        const text = textOf(component);
+
+        expect(text).toContain('Promotion line');
+        expect(text).toContain('Demotion line');
+        // In board order: the promotion line after the second row, the demotion line before the ninth.
+        expect(text.indexOf('name-2')).toBeLessThan(text.indexOf('Promotion line'));
+        expect(text.indexOf('Promotion line')).toBeLessThan(text.indexOf('name-3'));
+        expect(text.indexOf('name-8')).toBeLessThan(text.indexOf('Demotion line'));
+        expect(text.indexOf('Demotion line')).toBeLessThan(text.indexOf('name-9'));
+        await act(async () => { component.unmount(); });
+    });
+
+    it('tells a user below the page which side of the lines they are on', async () => {
+        getLeaderboard.mockResolvedValue(board({
+            scope: 'league',
+            league: brandLeague(),
+            currentUser: { userId: 'user-1', points: 5, rank: 10 },
+        }));
+
+        const component = await renderScreen();
+
+        expect(textOf(component)).toContain("You're below the demotion line");
+        await act(async () => { component.unmount(); });
     });
 
     it('shows the global board from that same request when no league is running', async () => {

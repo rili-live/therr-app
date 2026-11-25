@@ -176,6 +176,36 @@ describe('review prompt state persistence', () => {
         expect(await shouldShowReviewPrompt(NOW + (10 * 365 * DAY_MS))).toBe(false);
     });
 
+    it('counts a habit check-in once per local day, however many habits are checked in', async () => {
+        await recordPositiveSignal('habitCheckinDay', NOW, { dayKey: '2026-08-24' });
+        await recordPositiveSignal('habitCheckinDay', NOW + 60_000, { dayKey: '2026-08-24' });
+        await recordPositiveSignal('habitCheckinDay', NOW + 120_000, { dayKey: '2026-08-24' });
+
+        const state = await readReviewPromptState();
+        expect(state?.positiveSignalCount).toBe(1);
+        expect(state?.lastSignalDayKey).toBe('2026-08-24');
+    });
+
+    it('makes a habits user askable on their third check-in day, not on the first', async () => {
+        // Day 0, 1 and 2, each at the same hour: the daily user this signal exists for.
+        await recordPositiveSignal('habitCheckinDay', NOW, { dayKey: '2026-08-24' });
+        expect(await shouldShowReviewPrompt(NOW + (5 * 60_000))).toBe(false);
+
+        await recordPositiveSignal('habitCheckinDay', NOW + DAY_MS, { dayKey: '2026-08-25' });
+        expect(await shouldShowReviewPrompt(NOW + DAY_MS + (5 * 60_000))).toBe(false);
+
+        await recordPositiveSignal('habitCheckinDay', NOW + (2 * DAY_MS), { dayKey: '2026-08-26' });
+        expect(await shouldShowReviewPrompt(NOW + (2 * DAY_MS) + (5 * 60_000))).toBe(true);
+    });
+
+    it('still counts signals recorded without a day key every time', async () => {
+        await recordPositiveSignal('habitCheckinDay', NOW, { dayKey: '2026-08-24' });
+        await recordPositiveSignal('achievementClaimed', NOW);
+        await recordPositiveSignal('achievementClaimed', NOW);
+
+        expect((await readReviewPromptState())?.positiveSignalCount).toBe(3);
+    });
+
     it('does not let later signals revive a terminal status', async () => {
         await recordPositiveSignal('momentShared', NOW - (30 * DAY_MS));
         await markReviewPromptDeclined(NOW);
