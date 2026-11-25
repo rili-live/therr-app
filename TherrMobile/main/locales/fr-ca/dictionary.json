@@ -1550,6 +1550,12 @@
         "demotionZoneAccessibility": "Dans la zone de relégation",
         "topLeague": "Tu es dans la ligue la plus haute. Garde ta place!",
         "tooSmall": "Les montées et descentes commencent dès que 5 personnes compétitionnent dans cette ligue.",
+        "promotionLine": "Ligne de montée",
+        "demotionLine": "Ligne de relégation",
+        "promotionLineAccessibility": "Ligne de montée : tous ceux au-dessus montent d'une ligue à la fin de la semaine",
+        "demotionLineAccessibility": "Ligne de relégation : tous ceux en dessous descendent d'une ligue à la fin de la semaine",
+        "youArePromoting": "Tu es au-dessus de la ligne de montée",
+        "youAreDemoting": "Tu es sous la ligne de relégation — fais ton suivi aujourd'hui pour remonter",
         "names": {
           "habits": {
             "seedling": "Semis",

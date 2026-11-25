@@ -588,6 +588,9 @@ const HABITS_ONLY_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.habitComeback,
     PushNotifications.Types.habitPauseReminder,
     PushNotifications.Types.weeklyRecap,
+    // Its copy asks for a habit check-in, which only the Habits app has. The other leaderboard
+    // types stay cross-brand: their copy is about XP.
+    PushNotifications.Types.leaderboardDemotionRisk,
 ]);
 
 export const isHabitsOnlyType = (type: PushNotifications.Types): boolean => HABITS_ONLY_TYPES.has(type);
@@ -1604,6 +1607,32 @@ const createMessage = (
                 deviceToken: config.deviceToken,
             }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'), brandVariation);
             return baseMessage;
+        case PushNotifications.Types.leaderboardDemotionRisk: {
+            // Same intent-action reuse as leaderboardRankLost, for the same reason. Counts hours in
+            // the last two days and days before that: "ends in 58 hours" reads worse than "in 3
+            // days", and below 48 hours the day count would be 1 and need a singular form.
+            const hoursLeft = Number(config.hoursLeft || 0);
+            baseMessage = createDataOnlyMessage({
+                data: {
+                    ...modifiedData,
+                    notificationTitle: translate(config.userLocale, 'notifications.leaderboardDemotionRisk.title'),
+                    notificationBody: hoursLeft < 48
+                        ? translate(config.userLocale, 'notifications.leaderboardDemotionRisk.bodyHours', {
+                            rank: Number(config.rank || 0),
+                            pointsBehind: Number(config.pointsBehind || 0),
+                            hoursLeft,
+                        })
+                        : translate(config.userLocale, 'notifications.leaderboardDemotionRisk.bodyDays', {
+                            rank: Number(config.rank || 0),
+                            pointsBehind: Number(config.pointsBehind || 0),
+                            daysLeft: Math.ceil(hoursLeft / 24),
+                        }),
+                    notificationPressActionId: PushNotifications.PressActionIds.leaderboardView,
+                },
+                deviceToken: config.deviceToken,
+            }, getAppBrandingClickAction(brandVariation, 'LEADERBOARD_RANK_MILESTONE'), brandVariation);
+            return baseMessage;
+        }
         case PushNotifications.Types.streakMilestone:
             baseMessage = createDataOnlyMessage({
                 data: {
@@ -2178,6 +2207,7 @@ const SENDABLE_NOTIFICATION_TYPES: Set<PushNotifications.Types> = new Set([
     PushNotifications.Types.inviteFriendsReminder,
     PushNotifications.Types.latestPostLikesStats,
     PushNotifications.Types.latestPostViewcountStats,
+    PushNotifications.Types.leaderboardDemotionRisk,
     PushNotifications.Types.leaderboardPodiumWithinReach,
     PushNotifications.Types.leaderboardRankLost,
     PushNotifications.Types.leaderboardRankMilestone,

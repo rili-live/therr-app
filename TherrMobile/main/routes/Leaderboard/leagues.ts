@@ -61,3 +61,33 @@ export const getLeagueZone = (
     }
     return null;
 };
+
+export type LeagueLine = 'promotion' | 'demotion';
+
+/**
+ * The lines drawn directly above the row at `index` of the league board: the promotion line under
+ * the last row that moves up, the demotion line over the first row that drops. Both come from
+ * `getLeagueZone`, so a line always sits exactly where the row arrows change.
+ *
+ * A line falls only *between* two rows. When the board's page ends before a line (a league larger
+ * than the page), no line is drawn; the rank bar says which side of it the user is on instead.
+ */
+export const getLeagueLinesAbove = (
+    rows: ReadonlyArray<{ rank: number }>,
+    index: number,
+    status: ILeaderboardLeagueStatus | null | undefined,
+): LeagueLine[] => {
+    if (!status || index <= 0 || index >= rows.length) {
+        return [];
+    }
+    const zone = getLeagueZone(rows[index].rank, index + 1, status);
+    const previousZone = getLeagueZone(rows[index - 1].rank, index, status);
+    const lines: LeagueLine[] = [];
+    if (previousZone === 'promote' && zone !== 'promote') {
+        lines.push('promotion');
+    }
+    if (zone === 'demote' && previousZone !== 'demote') {
+        lines.push('demotion');
+    }
+    return lines;
+};

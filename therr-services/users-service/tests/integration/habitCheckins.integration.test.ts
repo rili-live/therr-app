@@ -25,6 +25,7 @@
  */
 import { expect } from 'chai';
 import { createCheckin } from '../../src/handlers/habitCheckins';
+import HabitCheckinsStore from '../../src/store/HabitCheckinsStore';
 import { getTestConnection, checkConnection } from './testDbConnection';
 
 const conn = () => getTestConnection();
@@ -301,5 +302,40 @@ describe('Integration Tests - Habit Check-ins', () => {
         expect(res.statusCode).to.equal(201);
         // Attributed to the earliest-started pact; both are still credited.
         expect(res.body.pactId).to.equal(s.pactId);
+    });
+
+    // The demotion-risk digest skips users who already checked in on their own local today. The
+    // unit suite mocks this query, so this is the only place its raw SQL meets Postgres.
+    describe('HabitCheckinsStore.getUsersCompletedOnLocalDates', () => {
+        const store = () => new HabitCheckinsStore(conn());
+
+        it('returns only users with a completed check-in on the local date paired with them', async () => {
+            if (skipTests) return;
+            const done = await setup({ withPact: false });
+            const otherDay = await setup({ withPact: false });
+            const skipped = await setup({ withPact: false });
+            const none = await mkUser();
+
+            expect((await checkin(done.userId, tap(done.habitGoalId))).statusCode).to.equal(201);
+            expect((await checkin(otherDay.userId, tap(otherDay.habitGoalId, {
+                scheduledDate: '2026-09-20', localDate: '2026-09-20',
+            }))).statusCode).to.equal(201);
+            expect((await checkin(skipped.userId, tap(skipped.habitGoalId, { status: 'skipped' }))).statusCode).to.equal(201);
+
+            const result = await store().getUsersCompletedOnLocalDates([
+                { userId: done.userId, localDate: CHECKIN_DATE },
+                { userId: otherDay.userId, localDate: CHECKIN_DATE },
+                { userId: skipped.userId, localDate: CHECKIN_DATE },
+                { userId: none, localDate: CHECKIN_DATE },
+            ]);
+
+            expect([...result]).to.deep.equal([done.userId]);
+        });
+
+        it('returns an empty set for no pairs without querying', async () => {
+            if (skipTests) return;
+            const result = await store().getUsersCompletedOnLocalDates([]);
+            expect(result.size).to.equal(0);
+        });
     });
 });

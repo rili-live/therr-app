@@ -8,6 +8,11 @@
       "title": "Leaderboard Milestone!",
       "body": "You just climbed to #{rank} on this week's leaderboard. Keep earning XP to defend your spot!"
     },
+    "leaderboardDemotionRisk": {
+      "title": "You're below the demotion line",
+      "bodyDays": "You're #{rank} in your league, {pointsBehind} XP short of safety. The week ends in {daysLeft} days — check in today so you don't drop down a league!",
+      "bodyHours": "You're #{rank} in your league, {pointsBehind} XP short of safety. The week ends in {hoursLeft} hours — check in today so you don't drop down a league!"
+    },
     "leaderboardPodiumWithinReach": {
       "title": "A podium spot is within reach",
       "body": "You're #{rank}, just {pointsBehind} XP behind #3. The leaderboard resets in {hoursLeft} hours — one more push could do it!"
