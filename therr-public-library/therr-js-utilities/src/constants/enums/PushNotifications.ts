@@ -39,6 +39,9 @@ export enum Types {
     // Sunday's last digest before the Monday (UTC) reset, to users a short XP gap from #3.
     // Same intent-action reuse as leaderboardRankLost.
     leaderboardPodiumWithinReach = 'leaderboard-podium-within-reach',
+    // Late-week digests, to a Habits user below their league's demotion line who has not checked
+    // in yet that day. Same intent-action reuse as leaderboardRankLost.
+    leaderboardDemotionRisk = 'leaderboard-demotion-risk',
 
     // Automation
     createYourProfileReminder = 'create-your-profile-reminder',

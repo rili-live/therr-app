@@ -53,6 +53,11 @@ describe('HABITS-only notification routing', () => {
         expect(isTypeAllowedForBrand(PushNotifications.Types.streakAtRisk, BrandVariations.THERR)).to.equal(false);
     });
 
+    it('keeps the demotion-risk push, whose copy asks for a habit check-in, off THERR', () => {
+        expect(isTypeAllowedForBrand(PushNotifications.Types.leaderboardDemotionRisk, BrandVariations.HABITS)).to.equal(true);
+        expect(isTypeAllowedForBrand(PushNotifications.Types.leaderboardDemotionRisk, BrandVariations.THERR)).to.equal(false);
+    });
+
     it('leaves cross-brand types routable everywhere', () => {
         // Habits ships connections, DMs, groups, thoughts and achievements too, so the
         // block must be narrow — widening it to the whole habits surface would silence
