@@ -1550,6 +1550,12 @@
         "demotionZoneAccessibility": "En la zona de descenso",
         "topLeague": "Estás en la liga más alta. ¡Mantén tu lugar!",
         "tooSmall": "Los ascensos y descensos empiezan cuando 5 personas compiten en esta liga.",
+        "promotionLine": "Línea de ascenso",
+        "demotionLine": "Línea de descenso",
+        "promotionLineAccessibility": "Línea de ascenso: todos los que están arriba suben de liga al terminar la semana",
+        "demotionLineAccessibility": "Línea de descenso: todos los que están abajo bajan de liga al terminar la semana",
+        "youArePromoting": "Estás sobre la línea de ascenso",
+        "youAreDemoting": "Estás bajo la línea de descenso — registra tu hábito hoy para salir",
         "names": {
           "habits": {
             "seedling": "Plántula",

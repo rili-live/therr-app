@@ -33,6 +33,7 @@ export const NOTIFICATION_TITLE_EMOJI: Record<PushNotifications.Types, string> =
     [PushNotifications.Types.leaderboardRankMilestone]: '📈',
     [PushNotifications.Types.leaderboardRankLost]: '📉',
     [PushNotifications.Types.leaderboardPodiumWithinReach]: '🥇',
+    [PushNotifications.Types.leaderboardDemotionRisk]: '⚠️',
 
     // Therr map / moments / spaces
     [PushNotifications.Types.newAreasActivated]: '🗺️',

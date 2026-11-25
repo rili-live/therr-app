@@ -25,11 +25,12 @@ notification needs either a second human or the daily digest:
 | `leaderboardRankMilestone` | yourself | weekly rank crossing a milestone |
 | `leaderboardRankLost` | whoever was #3 | someone *else* climbing into the weekly top 3 past them, outside the recipient's quiet hours; queued, so it needs `NOTIFICATION_QUEUE_WORKER_ENABLED=true`, and at most one a day |
 | `leaderboardPodiumWithinReach` | anyone ≤ 50 XP from tying #3 | the habits digest on a **UTC Sunday only**, outside the recipient's quiet hours |
+| `leaderboardDemotionRisk` (Habits only) | anyone under their league's demotion line with no completed check-in yet that local day | the habits digest on **Friday–Sunday (UTC) only**, **only while leagues are active** for habits, outside the recipient's quiet hours, at most one a day |
 | `partnerCheckedIn`, `partnerMissedDay` | pact partners | someone *else* acting |
 | `pactInvitation`, `pactAccepted`, `pactDeclined`, `pactNudge` | the other party | someone *else* acting |
 | `streakAtRisk`, `partnerMissedDay`, `pactExpiring` | members | the **daily digest only** — and it iterates `activePacts`, so no pact means no sends at all |
 
-Both leaderboard nudges are silent for a user with `settingsPushLeaderboardAlerts = false`.
+All three leaderboard nudges are silent for a user with `settingsPushLeaderboardAlerts = false`.
 
 So on a fresh single-user account with no pact: check in once, twice — nothing
 fires. That is correct behavior, not a bug.

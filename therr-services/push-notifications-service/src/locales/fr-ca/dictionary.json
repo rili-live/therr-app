@@ -8,6 +8,11 @@
       "title": "Jalon du classement!",
       "body": "Tu viens de grimper au rang #{rank} du classement de cette semaine. Continue de gagner des XP pour défendre ta place!"
     },
+    "leaderboardDemotionRisk": {
+      "title": "Tu es sous la ligne de relégation",
+      "bodyDays": "Tu es au rang #{rank} de ta ligue, à {pointsBehind} XP de la zone sûre. La semaine se termine dans {daysLeft} jours — fais ton suivi aujourd'hui pour ne pas descendre de ligue!",
+      "bodyHours": "Tu es au rang #{rank} de ta ligue, à {pointsBehind} XP de la zone sûre. La semaine se termine dans {hoursLeft} heures — fais ton suivi aujourd'hui pour ne pas descendre de ligue!"
+    },
     "leaderboardPodiumWithinReach": {
       "title": "Le podium est à ta portée",
       "body": "Tu es au rang #{rank}, à seulement {pointsBehind} XP du #3. Le classement se réinitialise dans {hoursLeft} heures — un dernier effort pourrait suffire!"
