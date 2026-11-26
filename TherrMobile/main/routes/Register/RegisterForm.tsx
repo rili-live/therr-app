@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Linking, Platform, Pressable, Text, View } from 'react-native';
 import DatePicker from 'react-native-date-picker';
 import { Button } from '../../components/BaseButton';
-import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { PasswordRegex } from 'therr-js-utilities/constants';
 import isValidSignupAge, { MINIMUM_SIGNUP_AGE } from 'therr-js-utilities/is-valid-signup-age';
 import { showToast } from '../../utilities/toasts';
@@ -13,13 +12,12 @@ import RoundInput from '../../components/Input/Round';
 import PasswordInput from '../../components/Input/PasswordInput';
 import PasswordRequirements from '../../components/Input/PasswordRequirements';
 import { ITherrThemeColors, ITherrThemeColorVariations, isDarkTheme } from '../../styles/themes';
-import { ISSOUserDetails } from '../Login/LoginForm';
 import TherrIcon from '../../components/TherrIcon';
 import OrDivider from '../../components/Input/OrDivider';
-import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
-import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
+import SSOButtons from '../../components/LoginButtons/SSOButtons';
 import spacingStyles from '../../styles/layouts/spacing';
 import { getLoginErrorCopy, getRegistrationErrorCopy } from '../../utilities/authErrors';
+import { buildSSOUserDetails, getSSOErrorCopy, ISSOUserDetails } from '../../utilities/ssoLogin';
 
 // Regular component props
 interface IRegisterFormProps {
@@ -27,6 +25,12 @@ interface IRegisterFormProps {
     onSuccess: Function;
     /** Omitted when the phone path isn't offered (e.g. arriving via a magic invite link). */
     onSwitchToPhoneSignup?: () => void;
+    /**
+     * Render Google/Apple under this form. Normally the sign-up screen shows them above
+     * everything instead; this form only carries its own for the invite-link path, where the
+     * e-mail form has to stay first because SSO sign-up does not yet carry the invite.
+     */
+    showSSOButtons?: boolean;
     register: Function;
     login: Function;
     title?: string;
@@ -292,43 +296,17 @@ export class RegisterFormComponent extends React.Component<
             isSubmitting: false,
         });
 
-        if (err?.message?.includes('The user canceled the sign in request')) {
-            // The user's own choice, not an error to report back.
-            return;
-        } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
-            this.showRegisterError(
-                this.translate('alertMessages.errorWithAppleSSO'),
-                this.translate('alertTitles.errorWithAppleSSO'),
-            );
-        } else if (err?.message?.includes('RNGoogleSignInError')) {
-            this.showRegisterError(
-                this.translate('alertMessages.errorWithGoogleSSO'),
-                this.translate('alertTitles.errorWithGoogleSSO'),
-            );
-        } else {
-            this.showRegisterError(
-                this.translate('alertMessages.backendErrorMessage'),
-                this.translate('alertTitles.backendErrorMessage'),
-            );
+        const copy = getSSOErrorCopy(err, this.translate);
+        if (copy) {
+            this.showRegisterError(copy.message, copy.title);
         }
     };
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
-        if (user.emailVerified) {
-            const firstName = additionalUserInfo?.given_name || (user.displayName?.split[0]);
-            const lastName = additionalUserInfo?.family_name || (user.displayName?.split[1]);
-            const nonce = additionalUserInfo?.profile?.nonce;
-            this.onSubmitLogin({
-                isSSO: true,
-                idToken,
-                nonce,
-                ssoProvider: provider,
-                ssoPlatform: Platform.OS,
-                userPhoneNumber: user.phoneNumber,
-                userFirstName: firstName,
-                userLastName: lastName,
-                userEmail: user.email,
-            });
+        const ssoUserDetails = buildSSOUserDetails(idToken, user, additionalUserInfo, provider, Platform.OS);
+
+        if (ssoUserDetails) {
+            this.onSubmitLogin(ssoUserDetails);
         } else {
             // TODO: RMOBILE-26: Add UI alert message
             console.log('SSO email is not verified!');
@@ -514,15 +492,10 @@ export class RegisterFormComponent extends React.Component<
                         disabled={this.state.isSubmitting}
                         loading={this.state.isSubmitting}
                     />
-                    <OrDivider
-                        translate={this.translate}
-                        themeForms={themeForms}
-                        containerStyle={spacingStyles.marginVertXLg}
-                    />
                     {
                         this.props.onSwitchToPhoneSignup
                             ? (
-                                <View style={themeForms.styles.moreLinksContainer}>
+                                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginTopMd]}>
                                     <Button
                                         type="clear"
                                         titleStyle={themeForms.styles.buttonLink}
@@ -533,27 +506,27 @@ export class RegisterFormComponent extends React.Component<
                             )
                             : null
                     }
-                    <View style={themeAuthForm.styles.submitButtonContainer}>
-                        <GoogleSignInButton
-                            disabled={this.state.isSubmitting}
-                            buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitleContinue')}
-                            onLoginError={this.onSSOLoginError}
-                            onLoginSuccess={this.onSSOLoginSuccess}
-                            themeForms={themeForms}
-                        />
-                    </View>
                     {
-                        Platform.OS === 'ios' && appleAuth.isSupported &&
-                        <View style={themeAuthForm.styles.submitButtonContainer}>
-                            <AppleSignInButton
-                                disabled={this.state.isSubmitting}
-                                buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
-                                onLoginError={this.onSSOLoginError}
-                                onLoginSuccess={this.onSSOLoginSuccess}
-                                themeForms={themeForms}
-                                type={AppleButton.Type.CONTINUE}
-                            />
-                        </View>
+                        this.props.showSSOButtons
+                            ? (
+                                <>
+                                    <OrDivider
+                                        translate={this.translate}
+                                        themeForms={themeForms}
+                                        containerStyle={spacingStyles.marginVertXLg}
+                                    />
+                                    <SSOButtons
+                                        disabled={this.state.isSubmitting}
+                                        intent="continue"
+                                        onLoginError={this.onSSOLoginError}
+                                        onLoginSuccess={this.onSSOLoginSuccess}
+                                        translate={this.translate}
+                                        themeAuthForm={themeAuthForm}
+                                        themeForms={themeForms}
+                                    />
+                                </>
+                            )
+                            : null
                     }
                 </View>
             </>

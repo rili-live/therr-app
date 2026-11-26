@@ -9,7 +9,6 @@ import {
 import { Button } from '../../components/BaseButton';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome5';
-import { appleAuth, AppleButton } from '@invertase/react-native-apple-authentication';
 import { ApiService } from 'therr-react/services';
 import { ErrorCodes } from 'therr-js-utilities/constants';
 import { showToast } from '../../utilities/toasts';
@@ -21,11 +20,9 @@ import Alert from '../../components/Alert';
 import RoundInput from '../../components/Input/Round';
 import PasswordInput from '../../components/Input/PasswordInput';
 import VerificationCodeInput from '../../components/Input/VerificationCodeInput';
-import AppleSignInButton from '../../components/LoginButtons/AppleSignInButton';
-import GoogleSignInButton from '../../components/LoginButtons/GoogleSignInButton';
+import SSOButtons from '../../components/LoginButtons/SSOButtons';
 import AccountPickerModal, { IPickableAccount } from '../../components/Modals/AccountPickerModal';
 import { ITherrThemeColors } from '../../styles/themes';
-import OrDivider from '../../components/Input/OrDivider';
 import {
     IdentifierKeyboard,
     isLikelyPhoneNumber,
@@ -39,18 +36,9 @@ import {
     IRememberedProfile,
 } from '../../utilities/rememberedProfiles';
 import { getLoginErrorCopy } from '../../utilities/authErrors';
+import { buildSSOUserDetails, getSSOErrorCopy, ISSOUserDetails } from '../../utilities/ssoLogin';
 
-export interface ISSOUserDetails {
-    isSSO: boolean;
-    idToken: string;
-    nonce?: string;
-    ssoProvider: string;
-    ssoPlatform?: string;
-    userFirstName?: string;
-    userLastName?: string;
-    userPhoneNumber?: string;
-    userEmail: string;
-}
+export type { ISSOUserDetails };
 
 /**
  * Which step of the passwordless flow is on screen. `password` is the default and covers
@@ -257,44 +245,18 @@ export class LoginFormComponent extends React.Component<
             isSubmitting: false,
         });
 
-        if (err?.message?.includes('The user canceled the sign in request')) {
-            // Google SSO User Canceled — the user's own choice, not an error to report back.
-            return;
-        } else if (err?.message?.includes('com.apple.AuthenticationServices.AuthorizationError')) {
-            this.showLoginError(
-                this.translate('alertMessages.errorWithAppleSSO'),
-                this.translate('alertTitles.errorWithAppleSSO'),
-            );
-        } else if (err?.message?.includes('RNGoogleSignInError')) {
-            this.showLoginError(
-                this.translate('alertMessages.errorWithGoogleSSO'),
-                this.translate('alertTitles.errorWithGoogleSSO'),
-            );
-        } else {
-            this.showLoginError(
-                this.translate('alertMessages.backendErrorMessage'),
-                this.translate('alertTitles.backendErrorMessage'),
-            );
+        const copy = getSSOErrorCopy(err, this.translate);
+        if (copy) {
+            this.showLoginError(copy.message, copy.title);
         }
         // TODO: Handle bad Google SSO key
     };
 
     onSSOLoginSuccess = (idToken, user, additionalUserInfo, provider = 'google') => {
-        if (user.emailVerified) {
-            const firstName = additionalUserInfo?.given_name || (user.displayName?.split[0]);
-            const lastName = additionalUserInfo?.family_name || (user.displayName?.split[1]);
-            const nonce = additionalUserInfo?.profile?.nonce;
-            this.onSubmit({
-                isSSO: true,
-                idToken,
-                nonce,
-                ssoProvider: provider,
-                ssoPlatform: Platform.OS,
-                userPhoneNumber: user.phoneNumber,
-                userFirstName: firstName,
-                userLastName: lastName,
-                userEmail: user.email,
-            });
+        const ssoUserDetails = buildSSOUserDetails(idToken, user, additionalUserInfo, provider, Platform.OS);
+
+        if (ssoUserDetails) {
+            this.onSubmit(ssoUserDetails);
         } else {
             // TODO: RMOBILE-26: Add UI alert message
             console.log('SSO email is not verified!');
@@ -864,52 +826,33 @@ export class LoginFormComponent extends React.Component<
                     type={'error'}
                     themeAlerts={themeAlerts}
                 />
+                {
+                    // SSO leads the screen: one tap with an account the user already has is the
+                    // shortest way in, and below the manual form it went unseen. It is noise
+                    // mid-code-entry, though — the user is three taps from being signed in.
+                    isCodeStep
+                        ? null
+                        : (
+                            <SSOButtons
+                                disabled={isSubmitting}
+                                intent="signIn"
+                                onLoginError={this.onSSOLoginError}
+                                onLoginSuccess={this.onSSOLoginSuccess}
+                                hasTrailingDivider
+                                translate={this.translate}
+                                themeAuthForm={themeAuthForm}
+                                themeForms={themeForms}
+                            />
+                        )
+                }
                 {isCodeStep ? this.renderVerificationCodeStep() : this.renderIdentifierStep()}
                 {
-                    // SSO and the sign-up/forgot-password links are noise mid-code-entry:
-                    // the user is three taps from being signed in and needs no alternatives.
                     isCodeStep
                         ? null
                         : (
                             <>
-                                <OrDivider
-                                    translate={this.translate}
-                                    themeForms={themeForms}
-                                    containerStyle={{ marginBottom: 20 }}
-                                />
-                                <View style={themeAuthForm.styles.submitButtonContainer}>
-                                    <GoogleSignInButton
-                                        disabled={isSubmitting}
-                                        buttonTitle={this.translate('forms.loginForm.sso.googleButtonTitleSignIn')}
-                                        onLoginError={this.onSSOLoginError}
-                                        onLoginSuccess={this.onSSOLoginSuccess}
-                                        themeForms={themeForms}
-                                    />
-                                </View>
-                                {
-                                    Platform.OS === 'ios' && appleAuth.isSupported &&
-                                    <View style={themeAuthForm.styles.submitButtonContainer}>
-                                        <AppleSignInButton
-                                            disabled={isSubmitting}
-                                            buttonTitle={this.translate('forms.loginForm.sso.appleButtonTitle')}
-                                            onLoginError={this.onSSOLoginError}
-                                            onLoginSuccess={this.onSSOLoginSuccess}
-                                            themeForms={themeForms}
-                                            type={AppleButton.Type.SIGN_IN}
-                                        />
-                                    </View>
-                                }
+                                {/* Forgot password first: it belongs to the form directly above it. */}
                                 <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd]}>
-                                    <Button
-                                        type="clear"
-                                        titleStyle={themeForms.styles.buttonLink}
-                                        title={this.translate(
-                                            'forms.loginForm.buttons.signUp'
-                                        )}
-                                        onPress={() => navigation.navigate('Register')}
-                                    />
-                                </View>
-                                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd, spacingStyles.marginTopMd]}>
                                     <Button
                                         type="clear"
                                         titleStyle={themeForms.styles.buttonLink}
@@ -917,6 +860,16 @@ export class LoginFormComponent extends React.Component<
                                             'forms.loginForm.buttons.forgotPassword'
                                         )}
                                         onPress={() => navigation.navigate('ForgotPassword')}
+                                    />
+                                </View>
+                                <View style={[themeForms.styles.moreLinksContainer, spacingStyles.marginBotMd, spacingStyles.marginTopMd]}>
+                                    <Button
+                                        type="clear"
+                                        titleStyle={themeForms.styles.buttonLink}
+                                        title={this.translate(
+                                            'forms.loginForm.buttons.signUp'
+                                        )}
+                                        onPress={() => navigation.navigate('Register')}
                                     />
                                 </View>
                             </>
