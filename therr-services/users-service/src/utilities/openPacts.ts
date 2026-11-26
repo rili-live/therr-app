@@ -89,6 +89,17 @@ export const JOIN_REQUEST_EXPIRY_DAYS = 14;
 export const openPactHandoffDedupeKey = (requestId: string): string => `open-pact-handoff:${requestId}`;
 
 /**
+ * Once per handoff for the people it happens to rather than the requesters it lets in: the former
+ * creator, partners already in the pact, and a partner promoted to host. A pact's creator changes
+ * at most once per former creator (they can only come back as a partner), so the pair is the event.
+ */
+export const openPactHandoffNoticeDedupeKey = (
+    audience: 'host' | 'formerCreator' | 'partner',
+    pactId: string,
+    formerCreatorUserId: string,
+): string => `open-pact-handoff-${audience}:${pactId}:${formerCreatorUserId}`;
+
+/**
  * Which unanswered pacts the digest prompts about. A pact whose invites have sat unanswered for
  * three days is unlikely to be answered at all — most accepts land within a day — but three weeks on
  * the creator has moved on, and a prompt about it reads as spam rather than help.

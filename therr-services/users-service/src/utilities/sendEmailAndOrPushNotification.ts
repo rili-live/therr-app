@@ -211,9 +211,10 @@ export interface ISendPushNotification extends PushNotifications.INotificationDa
     // carries on without them. Copy only — see push-notifications-service/api/pactDeclinedCopy.ts.
     pactDeclineReason?: 'memberLeft';
     // `pactJoinApproved` copy selector: set when the habits digest let the recipient into an open pact
-    // whose creator went quiet — 'handoffHost' for the requester who now hosts it, 'handoff' for the
-    // others (handlers/helpers/openPactHandoff.ts). Absent for an ordinary approval. Copy only.
-    pactJoinApprovedReason?: 'handoff' | 'handoffHost';
+    // whose creator went quiet — 'handoffHost' for whoever now hosts it, 'handoff' for the requesters
+    // let in, 'handoffFormerCreator' for the creator it moved on from, 'handoffPartner' for partners
+    // already in it (handlers/helpers/openPactHandoff.ts). Absent for an ordinary approval. Copy only.
+    pactJoinApprovedReason?: 'handoff' | 'handoffHost' | 'handoffFormerCreator' | 'handoffPartner';
     // Pact chat: the first line of the message a `pactMessage` push announces (capped by the
     // producer, handlers/pactChat.ts). Copy only.
     messagePreview?: string;

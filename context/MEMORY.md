@@ -10,6 +10,5 @@
 - Prod DB: use the prod-db skill (scripts/prod-query, read-only); never hand-roll pg scripts.
 
 ## Pending Decisions
-- (2026-11-24) Open-pact handoff (786dafbeb): host = oldest requester even when an active partner is
-  already in the pact; existing partners get no push that the host changed; a quiet requester can
-  become host. Decide, or file via /github-issues defer.
+- (decided 2026-11-26) Open-pact handoff: prefer an active partner as host, else oldest requester; host must be
+  active in 7d (requesting counts); former creator + partners get a push. Open: sign-of-life misses app opens.

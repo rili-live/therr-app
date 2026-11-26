@@ -227,7 +227,10 @@
       "title": "Tu es dedans!",
       "body": "{userName} t'a accepté dans son pacte {habitName}. Fais ton suivi aujourd'hui pour commencer.",
       "bodyHandoff": "Tu fais partie du pacte {habitName}. {userName} l'anime maintenant. Fais ton suivi aujourd'hui pour commencer.",
-      "bodyHandoffHost": "Le créateur du pacte {habitName} ne répond plus : c'est toi qui l'animes maintenant. Fais ton suivi aujourd'hui et réponds à ceux qui demandent à se joindre."
+      "bodyHandoffHost": "Le créateur du pacte {habitName} ne répond plus : c'est toi qui l'animes maintenant. Fais ton suivi aujourd'hui et réponds à ceux qui demandent à se joindre.",
+      "titleNewHost": "Ton pacte a un nouvel animateur",
+      "bodyHandoffFormerCreator": "Quelqu'un a demandé à se joindre à ton pacte {habitName} pendant une semaine sans suivi de ta part, alors {userName} l'anime maintenant. Il est toujours ouvert : demande à te joindre de nouveau quand tu veux.",
+      "bodyHandoffPartner": "{userName} anime maintenant ton pacte {habitName}. Rien d'autre ne change : continue ton suivi."
     },
     "openPactSuggestion": {
       "title": "Toujours en attente d'un partenaire?",
