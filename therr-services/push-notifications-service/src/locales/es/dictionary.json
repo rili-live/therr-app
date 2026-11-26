@@ -227,7 +227,10 @@
       "title": "¡Ya estás dentro!",
       "body": "{userName} te aceptó en su pacto de {habitName}. Registra tu avance hoy para empezar.",
       "bodyHandoff": "Estás en el pacto de {habitName}. {userName} lo organiza ahora. Registra tu avance hoy para empezar.",
-      "bodyHandoffHost": "El creador del pacto de {habitName} dejó de responder, así que ahora lo organizas tú. Registra tu avance hoy y responde a quien pida unirse."
+      "bodyHandoffHost": "El creador del pacto de {habitName} dejó de responder, así que ahora lo organizas tú. Registra tu avance hoy y responde a quien pida unirse.",
+      "titleNewHost": "Tu pacto tiene nuevo organizador",
+      "bodyHandoffFormerCreator": "Alguien pidió unirse a tu pacto de {habitName} durante una semana sin registros tuyos, así que ahora lo organiza {userName}. Sigue abierto: pide unirte de nuevo cuando quieras.",
+      "bodyHandoffPartner": "{userName} organiza ahora tu pacto de {habitName}. Nada más cambia: sigue registrando tu avance."
     },
     "openPactSuggestion": {
       "title": "¿Sigues esperando a un compañero?",

@@ -227,7 +227,10 @@
       "title": "You're in!",
       "body": "{userName} let you into their {habitName} pact. Check in today to get started.",
       "bodyHandoff": "You're in the {habitName} pact. {userName} is hosting it now. Check in today to get started.",
-      "bodyHandoffHost": "The {habitName} pact's creator went quiet, so it's yours to host now. Check in today and answer anyone who asks to join."
+      "bodyHandoffHost": "The {habitName} pact's creator went quiet, so it's yours to host now. Check in today and answer anyone who asks to join.",
+      "titleNewHost": "Your pact has a new host",
+      "bodyHandoffFormerCreator": "Someone asked to join your {habitName} pact during a week with no check-ins from you, so {userName} hosts it now. It's still open — ask to join again anytime.",
+      "bodyHandoffPartner": "{userName} hosts your {habitName} pact now. Nothing else changes — keep checking in."
     },
     "openPactSuggestion": {
       "title": "Still waiting on a partner?",

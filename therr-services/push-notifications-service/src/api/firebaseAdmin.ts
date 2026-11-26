@@ -269,7 +269,7 @@ interface ICreateMessageConfig {
     pactDeclineReason?: PactDeclineReason;
     // `pactJoinApproved` copy selector, set when users-service handed an open pact whose creator went
     // quiet to its waiting requesters (users-service helpers/openPactHandoff.ts). Copy only.
-    pactJoinApprovedReason?: 'handoff' | 'handoffHost';
+    pactJoinApprovedReason?: 'handoff' | 'handoffHost' | 'handoffFormerCreator' | 'handoffPartner';
     // Pact chat: the first line of the message a `pactMessage` push announces, already trimmed
     // and capped by users-service. Copy only.
     messagePreview?: string;
@@ -1436,16 +1436,22 @@ const createMessage = (
             return baseMessage;
         case PushNotifications.Types.pactJoinApproved: {
             // An ordinary approval names the creator who said yes. A handoff has nobody who said yes:
-            // the new host is told the pact is theirs now, and the others whose pact they joined.
+            // the new host is told the pact is theirs now, the requesters whose pact they joined, the
+            // former creator that it moved on without them, and partners already in it who hosts now.
+            // The last two were not let in anywhere, so they get their own title.
+            const reason = config.pactJoinApprovedReason as string;
             const bodyKey = {
                 handoff: 'bodyHandoff',
                 handoffHost: 'bodyHandoffHost',
-            }[config.pactJoinApprovedReason as string] || 'body';
+                handoffFormerCreator: 'bodyHandoffFormerCreator',
+                handoffPartner: 'bodyHandoffPartner',
+            }[reason] || 'body';
+            const titleKey = reason === 'handoffFormerCreator' || reason === 'handoffPartner' ? 'titleNewHost' : 'title';
             baseMessage = createNotificationMessage({
                 data: modifiedData,
                 deviceToken: config.deviceToken,
                 brandVariation,
-                notificationTitle: translate(config.userLocale, 'notifications.pactJoinApproved.title'),
+                notificationTitle: translate(config.userLocale, `notifications.pactJoinApproved.${titleKey}`),
                 notificationBody: translate(config.userLocale, `notifications.pactJoinApproved.${bodyKey}`, {
                     userName: String(config.fromUserName || ''),
                     habitName: String(config.habitName || ''),
