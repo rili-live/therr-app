@@ -3143,6 +3143,15 @@
                 "memberCountOne": "1 membre",
                 "requestedStatus": "Demande envoyée",
                 "cancelRequest": "Annuler la demande"
+            },
+            "formerMember": {
+                "title": "Tu ne fais plus partie de ce pacte",
+                "hostedBy": "{name} l'anime maintenant.",
+                "stillOpen": "Il est toujours ouvert : tu peux demander à te joindre de nouveau.",
+                "rejoinCta": "Demander à me joindre de nouveau",
+                "requestSent": "Demande envoyée",
+                "requestSentToast": "Demande envoyée à {name}",
+                "rejoinError": "Impossible d'envoyer ta demande. Réessaie."
             }
         },
         "pushOptIn": {

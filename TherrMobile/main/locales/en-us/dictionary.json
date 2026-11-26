@@ -3143,6 +3143,15 @@
                 "memberCountOne": "1 member",
                 "requestedStatus": "Request sent",
                 "cancelRequest": "Cancel request"
+            },
+            "formerMember": {
+                "title": "You're no longer in this pact",
+                "hostedBy": "{name} hosts it now.",
+                "stillOpen": "It's still open, so you can ask to join again.",
+                "rejoinCta": "Ask to join again",
+                "requestSent": "Request sent",
+                "requestSentToast": "Request sent to {name}",
+                "rejoinError": "Could not send your request. Please try again."
             }
         },
         "pushOptIn": {
