@@ -367,3 +367,69 @@ describe('PactDetail open pacts against an older server', () => {
         expect(getJoinRequests).toHaveBeenCalledWith('pact-1');
     });
 });
+
+/**
+ * A creator whose open pact the digest handed to a new host is marked `left`. They reach the pact
+ * from the old "someone asked to join" notification, and used to find it rendered as if they were
+ * still running it — no request to answer, an Abandon button, and no word of what happened.
+ */
+describe('PactDetail for someone no longer in the pact', () => {
+    const handedOff = (overrides: any = {}) => ({
+        ...PACT,
+        creatorUserId: PARTNER.userId,
+        isOpen: true,
+        endDate: undefined,
+        members: [{ ...PARTNER, role: 'creator' }, { ...ME, role: 'partner', status: 'left' }],
+        ...overrides,
+    });
+    const texts = (instance: any) => flattenElements(instance.render())
+        .flatMap((el) => [el.props?.title, typeof el.props?.children === 'string' ? el.props.children : undefined])
+        .filter((value) => typeof value === 'string');
+
+    beforeEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('says who hosts it now and offers to ask back in, with none of the member actions', () => {
+        const pact = handedOff();
+        const { instance } = buildInstance({ pacts: [pact], activePacts: [pact] });
+        const shown = texts(instance);
+
+        expect(shown).toContain('You\'re no longer in this pact');
+        expect(shown).toContain('Tyler hosts it now.');
+        expect(shown).toContain('Ask to join again');
+        expect(shown).not.toContain(instance.translate('pages.pacts.abandon'));
+        expect(shown).not.toContain(instance.translate('pages.pactChat.openChat'));
+    });
+
+    it('offers no way back into a closed pact', () => {
+        const pact = handedOff({ isOpen: false });
+        const { instance } = buildInstance({ pacts: [pact], activePacts: [pact] });
+        const shown = texts(instance);
+
+        expect(shown).toContain('You\'re no longer in this pact');
+        expect(shown).not.toContain('Ask to join again');
+    });
+
+    it('sends the request to the pact, which the new host answers', async () => {
+        const requestToJoin = jest.spyOn(PactsService, 'requestToJoin')
+            .mockImplementation(() => Promise.resolve({ data: {} }) as any);
+        const { instance } = buildInstance();
+
+        instance.handleAskToRejoin(handedOff(), 'Tyler');
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(requestToJoin).toHaveBeenCalledWith('pact-1');
+        expect(instance.setState).toHaveBeenCalledWith({ rejoinRequest: 'sent' });
+    });
+
+    it('shows a current member nothing of the sort, and keeps their member actions', () => {
+        const pact = { ...PACT, endDate: undefined };
+        const { instance } = buildInstance({ pacts: [pact], activePacts: [pact] });
+        const shown = texts(instance);
+
+        expect(shown).not.toContain('You\'re no longer in this pact');
+        expect(shown).toContain(instance.translate('pages.pacts.abandon'));
+    });
+});

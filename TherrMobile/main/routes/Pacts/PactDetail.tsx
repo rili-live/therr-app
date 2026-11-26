@@ -8,6 +8,7 @@ import { FeatureFlags, PledgeCharityKey } from 'therr-js-utilities/constants';
 import { HabitActions } from 'therr-react/redux/actions';
 import { PactsService } from 'therr-react/services';
 import { getApiErrorMessage } from '../../utilities/apiErrorMessage';
+import getFormerMemberState, { IFormerMemberState } from '../../utilities/pactFormerMember';
 import { logAppEvent } from '../../utilities/analyticsEvents';
 import { getHabitCapPaywallParams } from '../../utilities/habitCapPaywall';
 import permissions from '../../utilities/permissionsOrchestrator';
@@ -89,6 +90,8 @@ interface IPactDetailState {
      * until a refresh started after that moment brings back a count that knows what was read.
      */
     chatOpenedAt: number | null;
+    /** A former member's "ask to join again" request: in flight, or sent this visit. */
+    rejoinRequest: 'idle' | 'sending' | 'sent';
 }
 
 const mapStateToProps = (state: any) => ({
@@ -134,6 +137,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             isOpenSaving: false,
             answeringRequestId: null,
             chatOpenedAt: null,
+            rejoinRequest: 'idle',
         };
 
         this.theme = buildStyles(props.user.settings?.mobileThemeName);
@@ -292,6 +296,75 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
             .finally(() => {
                 this.setState({ answeringRequestId: null });
             });
+    };
+
+    /**
+     * A former member asks back into an open pact. It goes to whoever hosts it now, like any request;
+     * the server answers 200 with the existing request when one is already waiting, so a second tap
+     * is harmless.
+     */
+    handleAskToRejoin = (pact: IPact, hostName: string) => {
+        this.setState({ rejoinRequest: 'sending' });
+
+        PactsService.requestToJoin(pact.id)
+            .then(() => {
+                logAppEvent('habit_pact_join_request', { userId: this.props.user?.details?.id, source: 'formerMember' });
+                Toast.show({
+                    type: 'success',
+                    text1: this.translate('pages.pacts.formerMember.requestSentToast', { name: hostName }),
+                    visibilityTime: 2500,
+                });
+                this.setState({ rejoinRequest: 'sent' });
+            })
+            .catch((error: any) => {
+                Toast.show({
+                    type: 'error',
+                    text1: this.translate('pages.pacts.errorTitle'),
+                    text2: getApiErrorMessage(error) || this.translate('pages.pacts.formerMember.rejoinError'),
+                    visibilityTime: 3000,
+                });
+                this.setState({ rejoinRequest: 'idle' });
+            });
+    };
+
+    /**
+     * Someone who was in this pact and no longer is — most often a creator whose open pact the
+     * digest handed to a new host while they were away. Says who runs it now, and offers the way back
+     * in while it is still open.
+     */
+    renderFormerMemberCard = (pact: IPact, formerMember: IFormerMemberState) => {
+        const { rejoinRequest } = this.state;
+        const hostName = formerMember.hostMember?.firstName
+            || formerMember.hostMember?.userName
+            || this.translate('pages.pacts.partnerFallback');
+
+        return (
+            <View style={this.themeHabits.styles.streakWidgetContainer}>
+                <Text style={this.themeHabits.styles.streakWidgetTitle}>
+                    {this.translate('pages.pacts.formerMember.title')}
+                </Text>
+                <Text style={this.themeHabits.styles.pactCardInvitePrompt}>
+                    {this.translate('pages.pacts.formerMember.hostedBy', { name: hostName })}
+                </Text>
+                {formerMember.canAskToRejoin && (
+                    <>
+                        <Text style={this.themeHabits.styles.cadenceHint}>
+                            {this.translate('pages.pacts.formerMember.stillOpen')}
+                        </Text>
+                        <Button
+                            buttonStyle={[this.themeButtons.styles.btnLargeWithText, { marginTop: 12 }]}
+                            titleStyle={this.themeButtons.styles.btnLargeTitle}
+                            title={this.translate(rejoinRequest === 'sent'
+                                ? 'pages.pacts.formerMember.requestSent'
+                                : 'pages.pacts.formerMember.rejoinCta')}
+                            onPress={() => this.handleAskToRejoin(pact, hostName)}
+                            loading={rejoinRequest === 'sending'}
+                            disabled={rejoinRequest !== 'idle'}
+                        />
+                    </>
+                )}
+            </View>
+        );
     };
 
     goToOpenPacts = (pact: IPact) => {
@@ -994,14 +1067,17 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
         const currentUserMember = pact?.members?.find((m) => m.userId === currentUserId);
         const partnerMember = pact?.members?.find((m) => m.userId !== currentUserId);
         const isInvitedUser = isPactInviteAwaitingResponse(pact, currentUserId);
+        // No longer in this pact (left, removed, or handed off by the digest): nothing on it is
+        // theirs to act on, so every member action below is withheld.
+        const formerMember = getFormerMemberState(pact, currentUserId);
         // A pact past its endDate still reads `active` until the nightly sweep
         // marks it expired, so renewability is checked before activity: that
         // window must offer re-commit, not abandon.
-        const isRenewable = !isInvitedUser && isPactRenewable(pact);
+        const isRenewable = !isInvitedUser && !formerMember && isPactRenewable(pact);
         const isActive = pact?.status === 'active' && !isRenewable;
         const linkableHabitGoalId = pact && this.getLinkableHabitGoalId(pact);
         const currentUserPledge = getValidPledge(currentUserMember);
-        const canEditPledge = canEditPactPledge(pact, currentUserMember, isRenewable);
+        const canEditPledge = !formerMember && canEditPactPledge(pact, currentUserMember, isRenewable);
         const partnerName = partnerMember?.firstName
             || partnerMember?.userName
             || this.translate('pages.pacts.partnerFallback');
@@ -1109,7 +1185,9 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                             )}
                         </View>
 
-                        {this.renderChatCard(pact, isInvitedUser)}
+                        {formerMember && this.renderFormerMemberCard(pact, formerMember)}
+
+                        {!formerMember && this.renderChatCard(pact, isInvitedUser)}
 
                         {/* Above the members card: on a savings pact the money is what the
                             group opened this screen to see, and the per-member breakdown
@@ -1173,9 +1251,9 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
 
                         {this.renderPactStreakCard(pact)}
 
-                        {this.renderContinueSoloCard(pact, isActionLoading)}
+                        {!formerMember && this.renderContinueSoloCard(pact, isActionLoading)}
 
-                        {isActive && pact.members && pact.members.length > 1 && (
+                        {isActive && !formerMember && pact.members && pact.members.length > 1 && (
                             <View style={this.themeHabits.styles.streakWidgetContainer}>
                                 <Text style={this.themeHabits.styles.streakWidgetTitle}>
                                     {this.translate('pages.pacts.comparison')}
@@ -1230,7 +1308,7 @@ export class PactDetail extends React.Component<IPactDetailProps, IPactDetailSta
                             </View>
                         )}
 
-                        {isActive && !isInvitedUser && (
+                        {isActive && !isInvitedUser && !formerMember && (
                             <View style={this.themeHabits.styles.streakWidgetContainer}>
                                 <Button
                                     buttonStyle={this.themeButtons.styles.btnClear}

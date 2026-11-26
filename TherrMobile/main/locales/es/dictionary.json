@@ -3143,6 +3143,15 @@
                 "memberCountOne": "1 miembro",
                 "requestedStatus": "Solicitud enviada",
                 "cancelRequest": "Cancelar solicitud"
+            },
+            "formerMember": {
+                "title": "Ya no estás en este pacto",
+                "hostedBy": "Ahora lo organiza {name}.",
+                "stillOpen": "Sigue abierto, así que puedes pedir unirte de nuevo.",
+                "rejoinCta": "Pedir unirme de nuevo",
+                "requestSent": "Solicitud enviada",
+                "requestSentToast": "Solicitud enviada a {name}",
+                "rejoinError": "No se pudo enviar tu solicitud. Inténtalo de nuevo."
             }
         },
         "pushOptIn": {
