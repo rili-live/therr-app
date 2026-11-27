@@ -10,16 +10,21 @@
  * So when a request has waited OPEN_PACT_HANDOFF_MIN_REQUEST_AGE_DAYS and the creator has shown no
  * sign of life for OPEN_PACT_CREATOR_INACTIVE_DAYS (or deleted their account), the pact moves on
  * without them:
- *   - the requester who has waited longest becomes its host (`pacts.creatorUserId`, member role
- *     `creator`): they now answer any later requests and can close it;
+ *   - a new host takes it (`pacts.creatorUserId`, member role `creator`) and from then on answers
+ *     requests and can close it. A partner already in the pact is preferred, longest-standing first;
+ *     otherwise the requester who has waited longest. Either must have been active inside the same
+ *     window (see `chooseHost`), so a pact never passes from one quiet person to another — with
+ *     nobody active to host, nothing is handed off that run;
  *   - everyone else waiting is let in, oldest first, up to the seat limit — the same join path an
  *     approval runs (helpers/pactMembership.ts);
  *   - the quiet creator leaves the pact (member status `left`, as if they had left it). Their own
  *     habit, streaks and check-in history are untouched, and the pact is still open, so they can ask
  *     to rejoin it if they come back.
  *
- * Each person let in gets a `pactJoinApproved` push (the new host its `handoffHost` copy), queued
- * once per request. A requester at their free-tier habit limit is skipped, not approved, exactly as
+ * Everyone it touches is told once, all through `pactJoinApproved` copy selectors: each requester
+ * let in (`handoff`), the new host (`handoffHost`), the former creator (`handoffFormerCreator` —
+ * otherwise their pact simply vanishes from under them, with a request notification still pointing
+ * at it), and partners already in it (`handoffPartner`). A requester at their free-tier habit limit is skipped, not approved, exactly as
  * an approval would refuse them; their request stays pending for a later run or for the new host.
  */
 
@@ -35,6 +40,7 @@ import {
     OPEN_PACT_CREATOR_INACTIVE_DAYS,
     OPEN_PACT_HANDOFF_MIN_REQUEST_AGE_DAYS,
     openPactHandoffDedupeKey,
+    openPactHandoffNoticeDedupeKey,
 } from '../../utilities/openPacts';
 import { LeaderboardXpValues } from '../../utilities/leaderboardHelpers';
 import { checkHabitCapacity } from './habitCapacity';
@@ -61,12 +67,16 @@ export interface IOpenPactHandoffCounters {
     pactsEvaluated: number;
     /** Pacts handed to a new host. */
     pactsHandedOff: number;
-    /** Requesters let in, the new hosts included. */
+    /** Requesters let in, the new hosts among them included. */
     requestersApproved: number;
+    /** Pacts whose new host is a partner already in them rather than a requester. */
+    partnersPromoted: number;
     /** Requesters left pending because they were at their habit limit. */
     requestersAtCapacity: number;
     /** Nobody waiting could be let in (all at capacity, or the pact was full). Left for later. */
     pactsNoEligibleRequester: number;
+    /** Somebody could be let in, but nobody who could host has been active recently. Left for later. */
+    pactsNoActiveHost: number;
     /** Changed between the read and the handoff: answered, closed, ended, or moved by another run. */
     pactsSkippedChanged: number;
     /** Pending requests expired: too old, or on a pact that stopped running. */
@@ -80,8 +90,10 @@ export const EMPTY_OPEN_PACT_HANDOFF_COUNTERS: IOpenPactHandoffCounters = {
     pactsEvaluated: 0,
     pactsHandedOff: 0,
     requestersApproved: 0,
+    partnersPromoted: 0,
     requestersAtCapacity: 0,
     pactsNoEligibleRequester: 0,
+    pactsNoActiveHost: 0,
     pactsSkippedChanged: 0,
     requestsExpired: 0,
     handoffErrors: 0,
@@ -95,7 +107,7 @@ export interface IOpenPactHandoffContext {
 }
 
 /** The one copy selector the push service reads for `pactJoinApproved` (see firebaseAdmin.ts). */
-export type PactJoinApprovedReason = 'handoff' | 'handoffHost';
+export type PactJoinApprovedReason = 'handoff' | 'handoffHost' | 'handoffFormerCreator' | 'handoffPartner';
 
 /**
  * The helpers below share the pass's one counters object, so they add to it rather than return
@@ -153,6 +165,71 @@ const awardJoinXp = (userId: string, requestId: string, context: IOpenPactHandof
     `open-pact-joined:${requestId}`,
 );
 
+/** Signed in, checked in, or spoke in this pact's chat inside the same window a creator is judged by. */
+const isRecentlyActive = (lastActiveAt: Date | undefined, now: Date) => !!lastActiveAt
+    && lastActiveAt.getTime() > now.getTime() - OPEN_PACT_CREATOR_INACTIVE_DAYS * MS_PER_DAY;
+
+const latestOf = (...dates: Array<Date | string | null | undefined>): Date | undefined => dates
+    .reduce<Date | undefined>((acc, value) => {
+        if (!value) {
+            return acc;
+        }
+        const date = new Date(value);
+        return !acc || date.getTime() > acc.getTime() ? date : acc;
+    }, undefined);
+
+const memberSince = (member: any) => new Date(member.joinedAt || member.createdAt || 0).getTime();
+
+interface IHandoffHost {
+    userId: string;
+    userName: string;
+    /** The host's own request when the host is a requester; absent for a partner promoted from inside. */
+    request?: IPactJoinRequestRow;
+    member: any;
+}
+
+type EligibleRequester = { request: IPactJoinRequestRow; member: any };
+
+/**
+ * Who hosts the pact next:
+ *   1. a partner already in it, longest-standing first — someone already committed to this pact;
+ *   2. otherwise the longest-waiting requester who could be let in.
+ * Either way the host must have shown a sign of life inside the window that judged the creator gone
+ * (asking to join counts for a requester), so a pact is never handed from one quiet person to another.
+ * Everyone else eligible is let in as a partner whether or not they are recently active.
+ */
+const chooseHost = (
+    partners: any[],
+    eligible: EligibleRequester[],
+    lastActive: Record<string, Date>,
+    now: Date,
+): { host: IHandoffHost; joiners: EligibleRequester[] } | { skip: 'pactsNoEligibleRequester' | 'pactsNoActiveHost' } => {
+    const partnerHost = partners.find((member) => isRecentlyActive(lastActive[member.userId], now));
+    if (partnerHost) {
+        return {
+            host: { userId: partnerHost.userId, userName: partnerHost.userName || '', member: partnerHost },
+            joiners: eligible,
+        };
+    }
+    if (!eligible.length) {
+        return { skip: 'pactsNoEligibleRequester' };
+    }
+    const index = eligible.findIndex(({ request }) => isRecentlyActive(
+        latestOf(lastActive[request.requesterUserId], request.createdAt),
+        now,
+    ));
+    if (index < 0) {
+        return { skip: 'pactsNoActiveHost' };
+    }
+    const { request, member } = eligible[index];
+    return {
+        host: {
+            userId: request.requesterUserId, userName: request.requesterUserName || '', request, member,
+        },
+        joiners: eligible.filter((_, i) => i !== index),
+    };
+};
+
 const handOffPact = async (
     candidate: IPactAwaitingHandoffRow,
     queuePush: QueueRecapFn,
@@ -177,39 +254,57 @@ const handOffPact = async (
     }
 
     // The former creator's seat is freed by their leaving.
-    const [seats, formerCreatorMember] = await Promise.all([
+    const [seats, formerCreatorMember, members] = await Promise.all([
         Store.pacts.countSeats(pact.id),
         Store.pactMembers.getByPactAndUser(pact.id, formerCreatorId),
+        Store.pactMembers.getByPactId(pact.id),
     ]);
     const seatsAvailable = MAX_OPEN_PACT_MEMBERS - seats + (isAlreadyMember(formerCreatorMember) ? 1 : 0);
 
+    // Partners already in the pact, longest-standing first. A requester who also holds a seat is
+    // handled with the requests, so is not counted here too.
+    const requesterIds = new Set(requests.map((request) => request.requesterUserId));
+    const partners = (members || [])
+        .filter((member: any) => member.status === 'active' && member.userId !== formerCreatorId && !requesterIds.has(member.userId))
+        .sort((a: any, b: any) => memberSince(a) - memberSince(b));
+
     const eligible = await selectEligible(requests, pact.id, seatsAvailable, context, counters);
-    if (!eligible.length) {
-        bump(counters, 'pactsNoEligibleRequester');
+    const lastActive = await Store.pactJoinRequests.getLastActiveAtByUser(pact.id, [
+        ...partners.map((member: any) => member.userId),
+        ...eligible.map(({ request }) => request.requesterUserId),
+    ]);
+
+    const choice = chooseHost(partners, eligible, lastActive, now);
+    if ('skip' in choice) {
+        bump(counters, choice.skip);
         return;
     }
+    const { host, joiners } = choice;
+    const hostUserId = host.userId;
 
-    const [host, ...joiners] = eligible;
-
-    // Claim the host's request first, so a concurrent cancel resolves once.
-    const hostClaim = await Store.pactJoinRequests.resolvePending(host.request.id, 'approved');
-    if (!hostClaim) {
-        bump(counters, 'pactsSkippedChanged');
-        return;
+    // Claim a requester-host's request first, so a concurrent cancel resolves once.
+    if (host.request) {
+        const hostClaim = await Store.pactJoinRequests.resolvePending(host.request.id, 'approved');
+        if (!hostClaim) {
+            bump(counters, 'pactsSkippedChanged');
+            return;
+        }
     }
+    const revertHostClaim = () => (host.request
+        ? Store.pactJoinRequests.revertApproval(host.request.id).catch(() => undefined)
+        : Promise.resolve(undefined));
 
-    const handedOff = await Store.pacts.transferCreator(pact.id, formerCreatorId, host.request.requesterUserId)
+    const handedOff = await Store.pacts.transferCreator(pact.id, formerCreatorId, hostUserId)
         .catch(async (err) => {
-            await Store.pactJoinRequests.revertApproval(host.request.id).catch(() => undefined);
+            await revertHostClaim();
             throw err;
         });
     if (!handedOff) {
-        await Store.pactJoinRequests.revertApproval(host.request.id).catch(() => undefined);
+        await revertHostClaim();
         bump(counters, 'pactsSkippedChanged');
         return;
     }
 
-    const hostUserId = host.request.requesterUserId;
     // The former creator leaves; their role follows the pact's new shape. Their row is kept so the
     // pact stays in their history, exactly as leaving it themselves would.
     // Only a creator still in the pact gets a new `leftAt`; one already out keeps the date they left.
@@ -220,9 +315,12 @@ const handOffPact = async (
     }
 
     // The host's seat: active from now, like any creator's — a creator's row is active even while
-    // the pact waits for its first partner (handlers/pacts.ts § createPact).
+    // the pact waits for its first partner (handlers/pacts.ts § createPact). A promoted partner keeps
+    // the date they joined.
     if (host.member) {
-        await Store.pactMembers.updateByPactAndUser(pact.id, hostUserId, { role: 'creator', status: 'active', joinedAt: now });
+        await Store.pactMembers.updateByPactAndUser(pact.id, hostUserId, host.request
+            ? { role: 'creator', status: 'active', joinedAt: now }
+            : { role: 'creator' });
     } else {
         await Store.pactMembers.create({
             pactId: pact.id,
@@ -231,6 +329,7 @@ const handOffPact = async (
             status: 'active',
         });
     }
+    // Both idempotent; a promoted partner already has them unless they archived the habit since.
     await ensureActiveHabitTracking(hostUserId, pact.habitGoalId);
     if (handedOff.status === 'active') {
         // A pending pact creates its creator's streak on the first join (activatePactMembership).
@@ -238,19 +337,22 @@ const handOffPact = async (
     }
 
     bump(counters, 'pactsHandedOff');
-    bump(counters, 'requestersApproved');
-    awardJoinXp(hostUserId, host.request.id, context);
+    if (host.request) {
+        bump(counters, 'requestersApproved');
+        awardJoinXp(hostUserId, host.request.id, context);
+    } else {
+        bump(counters, 'partnersPromoted');
+    }
 
     const habitName = candidate.habitGoalName || '';
-    const hostName = host.request.requesterUserName || '';
-    const queueApproved = (toUserId: string, requestId: string, reason: PactJoinApprovedReason) => queuePush(
+    const queueHandoffPush = (toUserId: string, dedupeKey: string, reason: PactJoinApprovedReason) => queuePush(
         toUserId,
         PushNotifications.Types.pactJoinApproved,
-        openPactHandoffDedupeKey(requestId),
+        dedupeKey,
         {
             pactId: pact.id,
             habitName,
-            fromUser: { id: hostUserId, userName: hostName },
+            fromUser: { id: hostUserId, userName: host.userName },
             pactJoinApprovedReason: reason,
         },
         undefined,
@@ -262,7 +364,13 @@ const handOffPact = async (
         bump(counters, 'pushErrors');
     });
 
-    await queueApproved(hostUserId, host.request.id, 'handoffHost');
+    await queueHandoffPush(
+        hostUserId,
+        host.request
+            ? openPactHandoffDedupeKey(host.request.id)
+            : openPactHandoffNoticeDedupeKey('host', pact.id, formerCreatorId, now),
+        'handoffHost',
+    );
 
     // Everyone else waiting joins the pact under its new host. The first of them activates a pact
     // that was still waiting for its first partner, and the host with it.
@@ -296,7 +404,7 @@ const handOffPact = async (
             bump(counters, 'requestersApproved');
             awardJoinXp(request.requesterUserId, request.id, context);
             // eslint-disable-next-line no-await-in-loop
-            await queueApproved(request.requesterUserId, request.id, 'handoff');
+            await queueHandoffPush(request.requesterUserId, openPactHandoffDedupeKey(request.id), 'handoff');
         } catch (err: any) {
             bump(counters, 'handoffErrors');
             logSpan({
@@ -308,17 +416,29 @@ const handOffPact = async (
         }
     }
 
+    // The people the handoff happened *to* are told too. The former creator learns the pact moved on
+    // and that they can ask back in (only one still in it, and never a deleted account); partners
+    // already in it learn who hosts it now. Once each per handoff.
+    if (isAlreadyMember(formerCreatorMember) && !candidate.creatorIsSoftDeleted) {
+        await queueHandoffPush(
+            formerCreatorId,
+            openPactHandoffNoticeDedupeKey('formerCreator', pact.id, formerCreatorId, now),
+            'handoffFormerCreator',
+        );
+    }
+    const remainingPartners = partners.filter((member: any) => member.userId !== hostUserId);
+    // eslint-disable-next-line no-restricted-syntax
+    for (const member of remainingPartners) {
+        // eslint-disable-next-line no-await-in-loop
+        await queueHandoffPush(member.userId, openPactHandoffNoticeDedupeKey('partner', pact.id, formerCreatorId, now), 'handoffPartner');
+    }
+
     // A pact's host is connected to every partner in it (activatePactMembership connects each
     // joiner to the creator). The joiners above were connected to the new host as they came in;
     // partners already in a running pact were connected only to the creator who left. Same
-    // fire-and-forget contract: a connection failure never undoes the handoff.
-    // The former creator is excluded by id, not only by status: this read may hit a replica that
-    // has not yet seen them marked `left` above.
-    const skipIds = new Set([hostUserId, formerCreatorId, ...joiners.map(({ request }) => request.requesterUserId)]);
-    Store.pactMembers.getByPactId(pact.id)
-        .then((members: any[]) => Promise.all((members || [])
-            .filter((m) => m.status === 'active' && !skipIds.has(m.userId))
-            .map((m) => ensureCompletedUserConnection(hostUserId, m.userId))))
+    // fire-and-forget contract: a connection failure never undoes the handoff. The partner list is
+    // the one read before any write, so it never includes the creator who just left.
+    Promise.all(remainingPartners.map((member: any) => ensureCompletedUserConnection(hostUserId, member.userId)))
         .catch((err: any) => {
             logSpan({
                 level: 'error',
@@ -336,9 +456,11 @@ const handOffPact = async (
             'pact.id': pact.id,
             'pact.formerCreatorUserId': formerCreatorId,
             'pact.hostUserId': hostUserId,
+            'pact.hostWasPartner': !host.request,
             'pact.creatorWasSoftDeleted': candidate.creatorIsSoftDeleted,
             'pact.creatorLastActiveAt': candidate.creatorLastActiveAt ? new Date(candidate.creatorLastActiveAt).toISOString() : '',
             joinersApproved: joiners.length,
+            partnersNotified: remainingPartners.length,
         },
     });
 };

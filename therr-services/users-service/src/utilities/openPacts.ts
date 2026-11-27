@@ -89,6 +89,24 @@ export const JOIN_REQUEST_EXPIRY_DAYS = 14;
 export const openPactHandoffDedupeKey = (requestId: string): string => `open-pact-handoff:${requestId}`;
 
 /**
+ * Once per handoff for the people it happens to rather than the requesters it lets in: the former
+ * creator, partners already in the pact, and a partner promoted to host.
+ *
+ * The pact and former creator alone do not name the event: a former creator can come back as a
+ * partner, be promoted to host by a later handoff, and go quiet again — and the queue holds a sent
+ * row's key until retention prunes it, so a second handoff inside that window would be dropped
+ * silently. The UTC day of the handoff closes that gap. It cannot repeat within a day (the person
+ * handed off from must then be host again *and* quiet for a week), and a retry of the same run keeps
+ * the same day, so dedup still holds.
+ */
+export const openPactHandoffNoticeDedupeKey = (
+    audience: 'host' | 'formerCreator' | 'partner',
+    pactId: string,
+    formerCreatorUserId: string,
+    handedOffAt: Date,
+): string => `open-pact-handoff-${audience}:${pactId}:${formerCreatorUserId}:${handedOffAt.toISOString().slice(0, 10)}`;
+
+/**
  * Which unanswered pacts the digest prompts about. A pact whose invites have sat unanswered for
  * three days is unlikely to be answered at all — most accepts land within a day — but three weeks on
  * the creator has moved on, and a prompt about it reads as spam rather than help.

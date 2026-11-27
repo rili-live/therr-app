@@ -50,6 +50,7 @@ describe('open pacts — the handoff pass', () => {
     let expireStale: sinon.SinonStub;
     let getPendingByPact: sinon.SinonStub;
     let getUserConnections: sinon.SinonStub;
+    const PARTNER = 'a0000000-0000-4000-8000-0000000000aa';
 
     const stub = ({
         candidates = [candidate()],
@@ -59,10 +60,17 @@ describe('open pacts — the handoff pass', () => {
         members = { [CREATOR]: { status: 'active', role: 'creator' } } as Record<string, any>,
         atCapacity = [] as string[],
         transferred = true,
+        // Everyone has been active this week unless listed here.
+        quiet = [] as string[],
     }: any = {}) => {
         readCandidates = sinon.stub(Store.pactJoinRequests, 'getPactsAwaitingHandoff').resolves(candidates);
         sinon.stub(Store.pacts, 'getById').resolves(pact);
         getPendingByPact = sinon.stub(Store.pactJoinRequests, 'getPendingByPact').resolves(requests);
+        sinon.stub(Store.pactJoinRequests, 'getLastActiveAtByUser')
+            .callsFake(async (_pactId: string, userIds: string[]) => Object.fromEntries(userIds.map((userId) => [
+                userId,
+                quiet.includes(userId) ? new Date('2026-11-01T00:00:00Z') : new Date('2026-11-22T00:00:00Z'),
+            ])));
         sinon.stub(Store.pacts, 'countSeats').resolves(seats);
         sinon.stub(Store.pactMembers, 'getByPactAndUser').callsFake(async (_pactId: string, userId: string) => members[userId]);
         resolvePending = sinon.stub(Store.pactJoinRequests, 'resolvePending')
@@ -133,7 +141,8 @@ describe('open pacts — the handoff pass', () => {
         stub();
         await runOpenPactHandoffPass(queuePush, context, NOW);
 
-        expect(queuePush.callCount).to.equal(2);
+        // Host, the requester let in, and the creator it moved on from.
+        expect(queuePush.callCount).to.equal(3);
         const [hostTo, hostType, hostKey, hostExtras] = queuePush.firstCall.args;
         expect(hostTo).to.equal(FIRST);
         expect(hostType).to.equal(PushNotifications.Types.pactJoinApproved);
@@ -217,11 +226,12 @@ describe('open pacts — the handoff pass', () => {
     });
 
     it('connects the new host to the partners already in a running pact', async () => {
-        const PARTNER = 'a0000000-0000-4000-8000-0000000000aa';
+        // A quiet partner cannot host, so a requester does and must be connected to them.
         stub({
             pact: pendingPact({ status: 'active' }),
             requests: [joinRequest('req-1', FIRST, 'first'), joinRequest('req-2', SECOND, 'second')],
             members: { [CREATOR]: { status: 'active', role: 'creator' }, [PARTNER]: { status: 'active', role: 'partner' } },
+            quiet: [PARTNER],
         });
         await runOpenPactHandoffPass(queuePush, context, NOW);
         // Fire-and-forget: let the connection writes settle.
@@ -232,6 +242,134 @@ describe('open pacts — the handoff pass', () => {
         // Never to the creator who left, nor twice to a joiner activatePactMembership already connected.
         expect(pairs).to.not.deep.include({ requestingUserId: FIRST, acceptingUserId: CREATOR });
         expect(pairs.filter((p: any) => p.acceptingUserId === SECOND)).to.have.length(1);
+    });
+
+    describe('who hosts next', () => {
+        const runningWithPartner = (extra: any = {}) => ({
+            pact: pendingPact({ status: 'active' }),
+            members: {
+                [CREATOR]: { status: 'active', role: 'creator' },
+                [PARTNER]: {
+                    status: 'active', role: 'partner', userName: 'partner', joinedAt: '2026-10-01T00:00:00Z',
+                },
+            },
+            ...extra,
+        });
+
+        it('promotes a partner already in the pact over any requester, and lets every requester in', async () => {
+            stub(runningWithPartner());
+            const counters = await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            expect(counters).to.include({ pactsHandedOff: 1, partnersPromoted: 1, requestersApproved: 2 });
+            expect(transferCreator.calledOnceWith(PACT_ID, CREATOR, PARTNER)).to.equal(true);
+            // A promoted partner keeps the date they joined.
+            expect(updateMember.calledWith(PACT_ID, PARTNER, { role: 'creator' })).to.equal(true);
+            expect(resolvePending.calledWith('req-1', 'approved')).to.equal(true);
+            expect(resolvePending.calledWith('req-2', 'approved')).to.equal(true);
+
+            const hostPush = queuePush.getCalls().find((call) => call.args[0] === PARTNER);
+            expect(hostPush?.args[2]).to.equal(`open-pact-handoff-host:${PACT_ID}:${CREATOR}:2026-11-23`);
+            expect(hostPush?.args[3].pactJoinApprovedReason).to.equal('handoffHost');
+            const joinerPush = queuePush.getCalls().find((call) => call.args[0] === FIRST);
+            expect(joinerPush?.args[3].fromUser).to.deep.equal({ id: PARTNER, userName: 'partner' });
+        });
+
+        it('promotes the longest-standing active partner', async () => {
+            const NEWER = 'a0000000-0000-4000-8000-0000000000bb';
+            stub(runningWithPartner({
+                members: {
+                    [CREATOR]: { status: 'active', role: 'creator' },
+                    [NEWER]: { status: 'active', role: 'partner', joinedAt: '2026-11-10T00:00:00Z' },
+                    [PARTNER]: { status: 'active', role: 'partner', joinedAt: '2026-10-01T00:00:00Z' },
+                },
+            }));
+            await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            expect(transferCreator.calledOnceWith(PACT_ID, CREATOR, PARTNER)).to.equal(true);
+            const newerPush = queuePush.getCalls().find((call) => call.args[0] === NEWER);
+            expect(newerPush?.args[3].pactJoinApprovedReason).to.equal('handoffPartner');
+        });
+
+        it('passes over a quiet partner for an active requester', async () => {
+            stub(runningWithPartner({ quiet: [PARTNER] }));
+            const counters = await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            expect(counters).to.include({ partnersPromoted: 0 });
+            expect(transferCreator.calledOnceWith(PACT_ID, CREATOR, FIRST)).to.equal(true);
+        });
+
+        it('lets a quiet requester in as a partner but makes the next active one host', async () => {
+            stub({ quiet: [FIRST] });
+            const counters = await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            expect(counters).to.include({ pactsHandedOff: 1, requestersApproved: 2 });
+            expect(transferCreator.calledOnceWith(PACT_ID, CREATOR, SECOND)).to.equal(true);
+            expect(resolvePending.firstCall.args).to.deep.equal(['req-2', 'approved']);
+            expect(resolvePending.calledWith('req-1', 'approved')).to.equal(true);
+        });
+
+        it('counts asking to join this week as a requester being active', async () => {
+            stub({
+                quiet: [FIRST, SECOND],
+                requests: [
+                    { ...joinRequest('req-1', FIRST, 'first'), createdAt: new Date('2026-11-01T00:00:00Z') },
+                    { ...joinRequest('req-2', SECOND, 'second'), createdAt: new Date('2026-11-20T00:00:00Z') },
+                ],
+            });
+            await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            expect(transferCreator.calledOnceWith(PACT_ID, CREATOR, SECOND)).to.equal(true);
+        });
+
+        it('hands nothing off when nobody who could host has been active', async () => {
+            stub({ quiet: [FIRST, SECOND] });
+            const counters = await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            expect(counters).to.include({ pactsNoActiveHost: 1, pactsHandedOff: 0 });
+            expect(resolvePending.called).to.equal(false);
+            expect(transferCreator.called).to.equal(false);
+            expect(queuePush.called).to.equal(false);
+        });
+    });
+
+    describe('telling the people the handoff happened to', () => {
+        it('tells the former creator who hosts their pact now, once per handoff', async () => {
+            stub();
+            await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            const push = queuePush.getCalls().find((call) => call.args[0] === CREATOR);
+            expect(push?.args[1]).to.equal(PushNotifications.Types.pactJoinApproved);
+            expect(push?.args[2]).to.equal(`open-pact-handoff-formerCreator:${PACT_ID}:${CREATOR}:2026-11-23`);
+            expect(push?.args[3]).to.deep.include({
+                pactId: PACT_ID, habitName: 'Read', pactJoinApprovedReason: 'handoffFormerCreator',
+            });
+            expect(push?.args[3].fromUser).to.deep.equal({ id: FIRST, userName: 'first' });
+        });
+
+        it('does not tell a deleted account, nor a creator already out of the pact', async () => {
+            stub({ candidates: [candidate({ creatorIsSoftDeleted: true })] });
+            await runOpenPactHandoffPass(queuePush, context, NOW);
+            expect(queuePush.getCalls().some((call) => call.args[0] === CREATOR)).to.equal(false);
+
+            sinon.restore();
+            stub({ members: { [CREATOR]: { status: 'left', role: 'creator' } } });
+            await runOpenPactHandoffPass(queuePush, context, NOW);
+            expect(queuePush.getCalls().some((call) => call.args[0] === CREATOR)).to.equal(false);
+        });
+
+        it('tells partners already in the pact who hosts it now', async () => {
+            stub({
+                pact: pendingPact({ status: 'active' }),
+                members: { [CREATOR]: { status: 'active', role: 'creator' }, [PARTNER]: { status: 'active', role: 'partner' } },
+                quiet: [PARTNER],
+            });
+            await runOpenPactHandoffPass(queuePush, context, NOW);
+
+            const push = queuePush.getCalls().find((call) => call.args[0] === PARTNER);
+            expect(push?.args[2]).to.equal(`open-pact-handoff-partner:${PACT_ID}:${CREATOR}:2026-11-23`);
+            expect(push?.args[3].pactJoinApprovedReason).to.equal('handoffPartner');
+            expect(push?.args[3].fromUser).to.deep.equal({ id: FIRST, userName: 'first' });
+        });
     });
 
     it('leaves a pact alone when its creator came back or closed it since the read', async () => {
