@@ -1,4 +1,5 @@
 import KnexBuilder, { Knex } from 'knex';
+import { quoteTableName } from 'therr-js-utilities/db';
 import { IConnection } from './connection';
 import {
     HABIT_CHECKINS_TABLE_NAME,
@@ -35,13 +36,21 @@ export interface IPactAwaitingHandoffRow {
 // through refresh tokens, which write nothing, so a daily user's last *login* can be months old.
 // A check-in (on any habit) or a message in this pact's chat is the activity that matters here.
 // Falls back to the account's creation, so a user with no activity at all is measured from signup.
-const creatorLastActiveSql = () => 'GREATEST('
-    + 'creator."createdAt", '
-    + 'COALESCE(creator."lastLoginAt", creator."createdAt"), '
-    + `COALESCE((SELECT MAX(hc."createdAt") FROM ${HABIT_CHECKINS_TABLE_NAME} AS hc WHERE hc."userId" = creator."id"), creator."createdAt"), `
-    + `COALESCE((SELECT MAX(pm."createdAt") FROM ${PACT_MESSAGES_TABLE_NAME} AS pm`
-    + ` WHERE pm."pactId" = ${PACTS_TABLE_NAME}."id" AND pm."userId" = creator."id"), creator."createdAt")`
-    + ')';
+// `userAlias` names a row of main.users in the enclosing query; `pactIdSql` is the pact whose chat
+// counts. The same measure decides who has gone quiet and who may take a pact over, so a host is
+// never held to a looser standard than the creator they replace.
+const userLastActiveSql = (userAlias: string, pactIdSql: string) => {
+    const user = quoteTableName(userAlias);
+    return 'GREATEST('
+        + `${user}."createdAt", `
+        + `COALESCE(${user}."lastLoginAt", ${user}."createdAt"), `
+        + `COALESCE((SELECT MAX(hc."createdAt") FROM ${HABIT_CHECKINS_TABLE_NAME} AS hc WHERE hc."userId" = ${user}."id"), ${user}."createdAt"), `
+        + `COALESCE((SELECT MAX(pm."createdAt") FROM ${PACT_MESSAGES_TABLE_NAME} AS pm`
+        + ` WHERE pm."pactId" = ${pactIdSql} AND pm."userId" = ${user}."id"), ${user}."createdAt")`
+        + ')';
+};
+
+const creatorLastActiveSql = () => userLastActiveSql('creator', `${PACTS_TABLE_NAME}."id"`);
 
 export interface IPactJoinRequestRow {
     id: string;
@@ -253,6 +262,30 @@ export default class PactJoinRequestsStore {
             .toString();
 
         return this.db.write.query(queryString).then((response) => response.rows.map((row: any) => row.id));
+    }
+
+    /**
+     * Each user's latest sign of life, measured exactly as a creator's is for the handoff (login,
+     * check-in on any habit, or a message in this pact's chat). Used to keep a quiet person from
+     * being made a handed-off pact's host. Users not found are absent from the result.
+     */
+    getLastActiveAtByUser(pactId: string, userIds: string[]): Promise<Record<string, Date>> {
+        if (!userIds.length) {
+            return Promise.resolve({});
+        }
+        const queryString = knexBuilder
+            .select([
+                'u.id',
+                knexBuilder.raw(`${userLastActiveSql('u', '?')} as "lastActiveAt"`, [pactId]),
+            ])
+            .from(`${USERS_TABLE_NAME} as u`)
+            .whereIn('u.id', userIds)
+            .toString();
+
+        return this.db.read.query(queryString).then((response) => response.rows.reduce((acc: Record<string, Date>, row: any) => {
+            acc[row.id] = new Date(row.lastActiveAt);
+            return acc;
+        }, {}));
     }
 
     /**

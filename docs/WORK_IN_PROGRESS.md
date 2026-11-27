@@ -597,7 +597,9 @@ and `fix(push): clear dead device tokens for the recipient, not the sender`.
   was partly moved: search the logs for "failed to let a requester into a handed-off pact". Each handoff logs
   "open pact handed to a new host" with both user ids. Kill switch: `HABIT_OPEN_PACT_HANDOFF_ENABLED=false`
   (expiry keeps running; it only frees requesters' slots). Needs the push-notifications-service deploy too,
-  or the new host's push falls back to the ordinary "X let you into their pact" copy.
+  or the new host's push falls back to the ordinary "X let you into their pact" copy — and so do the former
+  creator's and existing partners' notices (`handoffFormerCreator` / `handoffPartner`, added 2026-11-26),
+  which would then wrongly tell them "You're in!". Ship push-notifications-service with or before users-service.
 
 ## Authenticated image pulls (added 2026-09-20)
 

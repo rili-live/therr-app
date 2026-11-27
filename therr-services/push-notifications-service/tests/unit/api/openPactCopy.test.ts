@@ -72,6 +72,21 @@ describe('open pact push copy', () => {
                 expect(message.notification.body).to.not.match(/\{\w+\}/);
                 expect(message.data.pactId).to.equal(baseConfig.pactId);
             });
+
+            // Neither was let in anywhere, so "You're in!" would be wrong for both.
+            ['handoffFormerCreator', 'handoffPartner'].forEach((pactJoinApprovedReason) => {
+                it(`tells a ${pactJoinApprovedReason} who hosts the pact now, under its own title (${userLocale})`, () => {
+                    const ordinary = build(PushNotifications.Types.pactJoinApproved, { userLocale });
+                    const message = build(PushNotifications.Types.pactJoinApproved, { userLocale, pactJoinApprovedReason });
+
+                    expect(message.notification.title).to.not.equal(ordinary.notification.title);
+                    expect(message.notification.title).to.not.match(/^notifications\./);
+                    expect(message.notification.body).to.contain('sam_runs');
+                    expect(message.notification.body).to.contain('Morning run');
+                    expect(message.notification.body).to.not.match(/\{\w+\}/);
+                    expect(message.data.pactId).to.equal(baseConfig.pactId);
+                });
+            });
         });
 
         it('falls back to the ordinary copy on an unknown reason', () => {
