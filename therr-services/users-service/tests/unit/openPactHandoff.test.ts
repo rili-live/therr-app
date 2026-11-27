@@ -268,7 +268,7 @@ describe('open pacts — the handoff pass', () => {
             expect(resolvePending.calledWith('req-2', 'approved')).to.equal(true);
 
             const hostPush = queuePush.getCalls().find((call) => call.args[0] === PARTNER);
-            expect(hostPush?.args[2]).to.equal(`open-pact-handoff-host:${PACT_ID}:${CREATOR}`);
+            expect(hostPush?.args[2]).to.equal(`open-pact-handoff-host:${PACT_ID}:${CREATOR}:2026-11-23`);
             expect(hostPush?.args[3].pactJoinApprovedReason).to.equal('handoffHost');
             const joinerPush = queuePush.getCalls().find((call) => call.args[0] === FIRST);
             expect(joinerPush?.args[3].fromUser).to.deep.equal({ id: PARTNER, userName: 'partner' });
@@ -339,7 +339,7 @@ describe('open pacts — the handoff pass', () => {
 
             const push = queuePush.getCalls().find((call) => call.args[0] === CREATOR);
             expect(push?.args[1]).to.equal(PushNotifications.Types.pactJoinApproved);
-            expect(push?.args[2]).to.equal(`open-pact-handoff-formerCreator:${PACT_ID}:${CREATOR}`);
+            expect(push?.args[2]).to.equal(`open-pact-handoff-formerCreator:${PACT_ID}:${CREATOR}:2026-11-23`);
             expect(push?.args[3]).to.deep.include({
                 pactId: PACT_ID, habitName: 'Read', pactJoinApprovedReason: 'handoffFormerCreator',
             });
@@ -366,7 +366,7 @@ describe('open pacts — the handoff pass', () => {
             await runOpenPactHandoffPass(queuePush, context, NOW);
 
             const push = queuePush.getCalls().find((call) => call.args[0] === PARTNER);
-            expect(push?.args[2]).to.equal(`open-pact-handoff-partner:${PACT_ID}:${CREATOR}`);
+            expect(push?.args[2]).to.equal(`open-pact-handoff-partner:${PACT_ID}:${CREATOR}:2026-11-23`);
             expect(push?.args[3].pactJoinApprovedReason).to.equal('handoffPartner');
             expect(push?.args[3].fromUser).to.deep.equal({ id: FIRST, userName: 'first' });
         });

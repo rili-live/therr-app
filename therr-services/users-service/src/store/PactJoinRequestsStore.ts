@@ -265,14 +265,6 @@ export default class PactJoinRequestsStore {
     }
 
     /**
-     * Open, running pacts with a request pending since at least `requestCreatedBefore` whose creator
-     * has deleted their account or shown no sign of life since `creatorInactiveBefore`. Oldest
-     * waiting request first, so the longest wait is handled first when a run is capped.
-     *
-     * A *closed* pact is left out on purpose: its creator chose to stop taking strangers, and
-     * handing it to one would overrule that. Its requests run out through `expireStale` instead.
-     */
-    /**
      * Each user's latest sign of life, measured exactly as a creator's is for the handoff (login,
      * check-in on any habit, or a message in this pact's chat). Used to keep a quiet person from
      * being made a handed-off pact's host. Users not found are absent from the result.
@@ -296,6 +288,14 @@ export default class PactJoinRequestsStore {
         }, {}));
     }
 
+    /**
+     * Open, running pacts with a request pending since at least `requestCreatedBefore` whose creator
+     * has deleted their account or shown no sign of life since `creatorInactiveBefore`. Oldest
+     * waiting request first, so the longest wait is handled first when a run is capped.
+     *
+     * A *closed* pact is left out on purpose: its creator chose to stop taking strangers, and
+     * handing it to one would overrule that. Its requests run out through `expireStale` instead.
+     */
     getPactsAwaitingHandoff(
         requestCreatedBefore: Date,
         creatorInactiveBefore: Date,

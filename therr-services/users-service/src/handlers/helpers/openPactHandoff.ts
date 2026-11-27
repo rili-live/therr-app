@@ -368,7 +368,7 @@ const handOffPact = async (
         hostUserId,
         host.request
             ? openPactHandoffDedupeKey(host.request.id)
-            : openPactHandoffNoticeDedupeKey('host', pact.id, formerCreatorId),
+            : openPactHandoffNoticeDedupeKey('host', pact.id, formerCreatorId, now),
         'handoffHost',
     );
 
@@ -422,7 +422,7 @@ const handOffPact = async (
     if (isAlreadyMember(formerCreatorMember) && !candidate.creatorIsSoftDeleted) {
         await queueHandoffPush(
             formerCreatorId,
-            openPactHandoffNoticeDedupeKey('formerCreator', pact.id, formerCreatorId),
+            openPactHandoffNoticeDedupeKey('formerCreator', pact.id, formerCreatorId, now),
             'handoffFormerCreator',
         );
     }
@@ -430,7 +430,7 @@ const handOffPact = async (
     // eslint-disable-next-line no-restricted-syntax
     for (const member of remainingPartners) {
         // eslint-disable-next-line no-await-in-loop
-        await queueHandoffPush(member.userId, openPactHandoffNoticeDedupeKey('partner', pact.id, formerCreatorId), 'handoffPartner');
+        await queueHandoffPush(member.userId, openPactHandoffNoticeDedupeKey('partner', pact.id, formerCreatorId, now), 'handoffPartner');
     }
 
     // A pact's host is connected to every partner in it (activatePactMembership connects each
